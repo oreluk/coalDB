@@ -1,7 +1,8 @@
-function updateDatabase(hh,dd, comp)
+function updateDatabase(hh, dd, curDir)
 %% Download List of Experimental Records Dealing with Coal
 % IFRF data is 763 experiments
-
+%
+% Update 2016.02.19 - revised for StandAlone Version
 % Update 2016.01.19  - onClickData now has experimentalIDs
 
 h = waitbar(0);
@@ -219,7 +220,8 @@ coalApp.dataPoints = dataPoints;
 coalApp.gasMixture = gasMixture;
 
 %%
-keyboard
+
+save(fullfile(curDir, 'coalData.mat'), 'coalApp')
 % save(fullfile(comp.OutputDirectory, 'coalApp.mat'), 'coalApp')
 
 %% Restart Application

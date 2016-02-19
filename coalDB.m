@@ -61,7 +61,7 @@ function coalDB
 
 
 %% Load Data
-f = load(fullfile(pwd, 'coalApp.mat'));
+f = load(fullfile(pwd, 'coalData.mat'));
 tableDataOriginal = f.coalApp.tableData;
 onClickDataOriginal = f.coalApp.onClickData;
 dataPointsOriginal = f.coalApp.dataPoints;
