@@ -1,4 +1,10 @@
 Change Log:
+ 2016.02.22	   - Added tooltip for plotted data points. 
+ 			   - Automatically reset table if no data shown. 
+ 			   - Filters in menu now work correct when used consecutively.
+ 			   - Changed Labels to Search. O2 search is now by Greater than equal to.
+ 			   - Changed search for gasComp from if/elseif to switch/case. 
+
  2016.01.19    - Added onClick of property to load Experimental XML. Added filtering so it takes 'current' table to filter entries. Allows more refined searching.
 
  2016.01.06    - Created Stand-alone Version

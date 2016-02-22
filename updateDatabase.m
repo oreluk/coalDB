@@ -47,7 +47,7 @@ commonTemp  = cell(1,dGCount);
 dataPoints  = cell(1,dGCount);
 gasMixture  = cell(1,dGCount);
 expPrimeID = cell(1,dGCount);
-
+dataGroupID = cell(1,dGCount);
 %% Process Data
 dGCount = 0;
 h = waitbar(0);
@@ -59,6 +59,7 @@ for i = 1:n
     dG = xmlDocument.GetElementsByTagName('dataGroup');
     for dList = 1:dG.Count
         dGCount = dGCount + 1;
+        dataGroupID{dGCount} = char(dG.Item(dList-1).GetAttribute('id'));
         if dList == 1
             % Bibliography and Fuel Information
             addNode = xmlDocument.GetElementsByTagName('additionalDataItem');
@@ -212,7 +213,7 @@ end
 
 checkBoxData = zeros(1,length(fuelPrefKey)); checkBoxData = num2cell(logical(checkBoxData));
 tableData =     [checkBoxData', fuelPrefKey' initialO2' formattedGasMix' commonTemp'  propertyName' bibPrefKey'];
-onClickData =   [checkBoxData', fuelPrimeID', tableData(:,3), tableData(:,4), tableData(:,5), expPrimeID', bibPrimeID' ];
+onClickData =   [checkBoxData', fuelPrimeID', tableData(:,3), tableData(:,4), tableData(:,5), expPrimeID', bibPrimeID' dataGroupID' ];
 
 coalApp.tableData = tableData;
 coalApp.onClickData = onClickData;

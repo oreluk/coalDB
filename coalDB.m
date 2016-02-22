@@ -6,10 +6,6 @@ function coalDB
 %  Purpose: Allow users to view table of coal results, plot weight-loss,
 %  filter coal data by coal name
 
-
-
-
-
 %% Load Data
 f = load(fullfile(pwd, 'coalData.mat'));
 tableDataOriginal = f.coalApp.tableData;
@@ -18,7 +14,7 @@ dataPointsOriginal = f.coalApp.dataPoints;
 gasMixture = f.coalApp.gasMixture;
 onClickData = onClickDataOriginal;
 dataPoints = dataPointsOriginal;
-    
+
 %% Create GUI
 
 fig = figure('Name','PrIMe Coal Database', ...
@@ -104,7 +100,7 @@ filterByMenu = uicontrol('Parent',buttonPanel, ...
     'Style',            'popup', ...
     'HorizontalAlignment', 'left', ...
     'FontSize',         10, ...
-    'String',           {'Coal Name', '%O2', 'Gas Mixture', 'Temperature'});
+    'String',           {'Coal Name', '%O2 (Greater Than Value)', 'Gas Mixture', 'Temperature (Greater Than Value)'});
 
 filterB = uicontrol('Parent',buttonPanel,...
     'Units',            'normalized', ...
@@ -127,7 +123,7 @@ resetB =  uicontrol('Parent',buttonPanel, ...
     function onClick(h, d)
         NET.addAssembly('System.Xml');
         if size(d.Indices,1) == 1
-            if d.Indices(2) ~= 1 && d.Indices(2) ~= 3 && d.Indices(2) ~= 4 && d.Indices(2) ~= 5 
+            if d.Indices(2) ~= 1 && d.Indices(2) ~= 3 && d.Indices(2) ~= 4 && d.Indices(2) ~= 5
                 % Clicking Coal Name
                 if d.Indices(2) == 2
                     ReactionLab.Util.gate2primeData('show',{'primeId',onClickData{d.Indices(1),d.Indices(2)}});
@@ -151,6 +147,25 @@ resetB =  uicontrol('Parent',buttonPanel, ...
     end
 
     function filterButton(h,d, varargin)
+        
+        if ~isempty(varargin)
+            if strcmp(varargin{1},'pyro') == 1
+                resetButton;
+                searchGroup = 88;
+            elseif strcmp(varargin{1}, 'oxidation') == 1
+                resetButton;
+                searchGroup = 55;
+            end
+        else
+            searchTerm = searchBox.String;
+            searchGroup = filterByMenu.Value;
+        end
+        
+        % Reset if no datasets are shown.
+        if size(tableDisplay.Data,1) == 0
+            resetButton;
+        end
+        
         filterTable = {};
         filterOnClick = {};
         filterDataPoints = {};
@@ -158,17 +173,6 @@ resetB =  uicontrol('Parent',buttonPanel, ...
         tData = tableDisplay.Data;
         oData = onClickData;
         dPoint = dataPoints;
-       
-        if ~isempty(varargin)
-            if strcmp(varargin{1},'pyro') == 1
-                searchGroup = 88;
-            elseif strcmp(varargin{1}, 'oxidation') == 1
-                searchGroup = 55;
-            end
-        else
-            searchTerm = searchBox.String;
-            searchGroup = filterByMenu.Value;
-        end
         
         % Match Coal Name
         if searchGroup == 1
@@ -188,7 +192,7 @@ resetB =  uicontrol('Parent',buttonPanel, ...
         elseif searchGroup == 2
             count = 0;
             for i = 1:size(tData,1)
-                if str2double(tData(i,3)) == str2double(strtrim(searchTerm))
+                if str2double(tData(i,3)) >= str2double(strtrim(searchTerm))
                     count = count + 1;
                     for j = 1:size(tData,2)
                         filterTable{count,j} = tData{i,j};
@@ -201,16 +205,18 @@ resetB =  uicontrol('Parent',buttonPanel, ...
             % Match Gas Mixture
         elseif searchGroup == 3
             searchTerm = strtrim(lower(searchTerm));
-            if strcmp( searchTerm, 'nitrogen') == 1
-                searchTerm = 'n2';
-            elseif strcmp( searchTerm,'helium') == 1
-                searchTerm = 'he';
-            elseif strcmp( searchTerm, 'argon') == 1
-                searchTerm = 'ar';
-            elseif strcmp( searchTerm, 'oxygen') == 1
-                searchTerm = 'o2';
-            elseif strcmp( searchTerm, 'water') == 1
-                searchTerm = 'h2o';
+            
+            switch searchTerm
+                case 'nitrogen'
+                    searchTerm = 'n2';
+                case 'helium'
+                    searchTerm = 'he';
+                case 'argon'
+                    searchTerm = 'ar';
+                case 'oxygen'
+                    searchTerm = 'o2';
+                case 'water'
+                    searchTerm = 'h2o';
             end
             
             count = 0;
@@ -284,7 +290,7 @@ resetB =  uicontrol('Parent',buttonPanel, ...
         dataPoints = filterDataPoints;
         onClickData = filterOnClick;
         tableDisplay.Data = filterTable;
-        resultsFoundText.String = sprintf('Datasets Found: %s', num2str(size(tableDisplay.Data,1)));        
+        resultsFoundText.String = sprintf('Datasets Found: %s', num2str(size(tableDisplay.Data,1)));
     end
 
     function resetButton(h,d)
@@ -398,6 +404,10 @@ resetB =  uicontrol('Parent',buttonPanel, ...
             xlabel(ax, strcat(xMenu.String{xMenu.Value}, ' [', xUnits, ']'))
             ylabel(ax, strcat(yMenu.String{yMenu.Value}, ' [', yUnits, ']'))
             
+            dcm = datacursormode(plotFig);
+            datacursormode on
+            dcm.updatefcn =  @dataPointInfo;
+            
             % Data Tab
             nTable = [];
             for j = 1:length(dataTable)
@@ -435,6 +445,16 @@ resetB =  uicontrol('Parent',buttonPanel, ...
                 'FontSize',         10, ...
                 'String',           'Save to Excel', ...
                 'CallBack',         @exportExcel);
+        end
+        
+        %%
+        function dataLabel = dataPointInfo(obj, event_obj)
+            pos = event_obj.Position;
+            dataLabel = {[xMenu.String{xMenu.Value}, ': ', num2str(pos(1),4)], ...
+                [yMenu.String{yMenu.Value}, ': ', num2str(pos(2), 4)]};
+            if length(pos) > 2
+                dataLabel{end+1} = ['Z: ', num2str(pos(3), 4)];
+            end
         end
         
         function [xUnits, yUnits] = setPlot(hh,dd)

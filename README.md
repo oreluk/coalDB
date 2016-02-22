@@ -17,25 +17,22 @@ Ease of access to the PrIMe Coal Database. Discover, visualize, and acts as an e
 
 ## Future Changes
 
-* Sort by columns, show only particular ranges of values
-
-* Sort O2, Temperature by Greater than, less than, or equal to a numerical value. (should have a dropdown menu for these options)
+* Sort by columns
+* Show only particular ranges of values -- is there an easy way?
 
 * Filtering done through search of XML (not table results) search BY ____ uimenulist of sections/attributes to search by. Any field can be used
-
-* Show datapoint tool tip over plots. (can this work for error bars?)
 
 ### Workflow
 
 * Select Experiments
 
 * Create Target.h5
-** species primeIDs
-** concentrations
-** features...
+..* species primeIDs
+..* concentrations
+..* features
    
 
-***  BG build xml to upload  ( works stand-alone but also can upload/store work in prime)
+*  BG build xml to upload  ( works stand-alone but also can upload/store work in prime)
     
 * Input bounds on exp
 
