@@ -7,57 +7,7 @@ function coalDB
 %  filter coal data by coal name
 
 
-%% Update Notes:
-% 2016.01.19    - Added onClick of property to load Experimental XML. Added
-% filtering so it takes 'current' table to filter entries. Allows more
-% refined searching.
 
-% 2016.01.06    - Created Stand-alone Version
-
-% 2015.08.24    - Added input component string. These changes will allow
-%               the coalDatabaseApp to run in the PWA. 
-
-% 2015.08.21    - Add sorting of values before plotting.
-%               - Added Checkbox for Displaying Line for Plot
-%               - Added Show Only Pyrolsis and Oxidation in Option Menu
-%               - Added Save to Excel file in the Data Section
-
-% 2015.08.20    - Put Legend Information above Columns in the Tab named
-%               Data
-
-% 2015.08.19    - Finished Data Table displaying properly
-%               - Fixed bug in filter function which caused plotted data to
-%               be incorrect after a table reset.
-%               - Fixed bug with some Sandia experiments not showing
-%               species XML and chemical analysis XML.
-%               - Added counter for number of results displayed in table
-%               - Changed UI for plot window so that it fits the
-%               uipopupmenus better.
-%               - Filter by %O2 has been added for only equality. (0% O2
-%               cases can be pulled from other cases).
-
-% 2015.08.18    - Sped up parsing of data in updateDatabase by matching prefKeys
-%               - Error Bars for plots with uncertainty in dataPoints (comma
-%            delimited
-
-%% Known Bugs
-% Issue when there is uncertainty in the measurements in the x-axis, cannot
-% plot error bars in that direction(errorbar() assumes its in the y-E, y+E)
-
-% Issue with legend. When 2 experiments with different properties are
-% plotted. It will incorrectly display the name in legend.
-
-%% Future Changes
-
-% sort by columns, show only particular ranges of values
-
-% Sort O2, Temperature by Greater than, less than, or equal to a numerical
-% value. (should have a dropdown menu for these options)
-
-% filtering done through search of XML (not table results) search BY ____
-% uimenulist of sections/attributes to search by. Any field can be used
-
-% show datapoint tool tip over plots. (can this work for error bars?)
 
 
 %% Load Data
@@ -334,31 +284,7 @@ resetB =  uicontrol('Parent',buttonPanel, ...
         dataPoints = filterDataPoints;
         onClickData = filterOnClick;
         tableDisplay.Data = filterTable;
-        resultsFoundText.String = sprintf('Datasets Found: %s', num2str(size(tableDisplay.Data,1)));
-        
-        
-        
-        %% Further Filter Table
-        % Get information from table
-%         for i = 1:length(onClickData)
-%             dd = ReactionLab.Util.gate2primeData('getDOM', {'primeId',onClickData{i,2}});
-%             % Look at coalType for all "important" species
-%             names = dd.GetElementsByTagName('name');
-%             for ii = 1:names.Count
-%                 nameAtt = char(names.Item(ii-1).GetAttribute('type'));
-%                 if strcmpi(nameAtt, 'FuelType')
-%                     results{i,2} = char(names.Item(ii-1).InnerXml);
-%                 end
-%             end
-%             results{i,1} = onClickData{i,2};
-%             results{i,3} = char(dd.GetElementsByTagName('preferredKey').Item(0).InnerXml);
-%             results{i,4} = onClickData{i,3};
-%         end
-%         xlswrite('test.xlsx', results)
-%         keyboard
-%         
-        
-        
+        resultsFoundText.String = sprintf('Datasets Found: %s', num2str(size(tableDisplay.Data,1)));        
     end
 
     function resetButton(h,d)

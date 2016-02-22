@@ -1,0 +1,23 @@
+Change Log:
+ 2016.01.19    - Added onClick of property to load Experimental XML. Added filtering so it takes 'current' table to filter entries. Allows more refined searching.
+
+ 2016.01.06    - Created Stand-alone Version
+
+ 2015.08.24    - Added input component string. These changes will allow the coalDatabaseApp to run in the PWA. 
+
+ 2015.08.21    - Add sorting of values before plotting.
+               - Added Checkbox for Displaying Line for Plot
+               - Added Show Only Pyrolsis and Oxidation in Option Menu
+               - Added Save to Excel file in the Data Section
+
+ 2015.08.20    - Put Legend Information above Columns in the Tab named Data
+
+ 2015.08.19    - Finished Data Table displaying properly
+               - Fixed bug in filter function which caused plotted data to be incorrect after a table reset.
+               - Fixed bug with some Sandia experiments not showing species XML and chemical analysis XML.
+               - Added counter for number of results displayed in table
+               - Changed UI for plot window so that it fits the uipopupmenus better.
+               - Filter by %O2 has been added for only equality. (0% O2 cases can be pulled from other cases).
+
+ 2015.08.18    - Sped up parsing of data in updateDatabase by matching prefKeys
+               - Error Bars for plots with uncertainty in dataPoints (comma delimited)
