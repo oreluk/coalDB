@@ -104,7 +104,7 @@ filterByMenu = uicontrol('Parent',buttonPanel, ...
 
 filterB = uicontrol('Parent',buttonPanel,...
     'Units',            'normalized', ...
-    'Position',         [0.65,0.1,0.15,0.3], ...
+    'Position',         [0.60,0.1,0.12,0.3], ...
     'Style',            'pushbutton', ...
     'FontSize',         10, ...
     'String',           'Search Table', ...
@@ -112,11 +112,20 @@ filterB = uicontrol('Parent',buttonPanel,...
 
 resetB =  uicontrol('Parent',buttonPanel, ...
     'Units',            'normalized', ...
-    'Position',         [0.81,0.1,0.15,0.3], ...
+    'Position',         [0.73,0.1,0.12,0.3], ...
     'Style',            'pushbutton', ...
     'FontSize',         10, ...
     'String',           'Reset Table', ...
     'CallBack',         @resetButton);
+
+b2bdcB =  uicontrol('Parent',buttonPanel, ...
+    'Units',            'normalized', ...
+    'Position',         [0.86,0.1,0.12,0.3], ...
+    'Style',            'pushbutton', ...
+    'FontSize',         10, ...
+    'String',           'Create Targets', ...
+    'CallBack',         {@createTargetList, tableDisplay});
+
 
 %% Call Back Functions
 
@@ -176,36 +185,21 @@ resetB =  uicontrol('Parent',buttonPanel, ...
         
         % Match Coal Name
         if searchGroup == 1
-            count = 0;
-            for i = 1:size(tData,1)
-                if strfind( lower(tData{i,2}), strtrim(lower(searchTerm)) ) >= 1
-                    count = count + 1;
-                    for j = 1:size(tData,2)
-                        filterTable{count,j} = tData{i,j};
-                        filterOnClick{count,j} = oData{i,j};
-                        filterDataPoints{count} = dPoint{1,i};
-                    end
-                end
-            end
+            [filterTable, filterOnClick, filterDataPoints] = filterSub( ...
+                tData, oData, dPoint, ...
+                'strfind( lower(tData{i,2}), strtrim(lower(searchTerm)) ) >= 1', ...
+                searchTerm);
             
             % Match %O2
         elseif searchGroup == 2
-            count = 0;
-            for i = 1:size(tData,1)
-                if str2double(tData(i,3)) >= str2double(strtrim(searchTerm))
-                    count = count + 1;
-                    for j = 1:size(tData,2)
-                        filterTable{count,j} = tData{i,j};
-                        filterOnClick{count,j} = oData{i,j};
-                        filterDataPoints{count} = dPoint{1,i};
-                    end
-                end
-            end
+            [filterTable, filterOnClick, filterDataPoints] = filterSub( ...
+                tData, oData, dPoint, ...
+                'str2double(tData(i,3)) >= str2double(strtrim(searchTerm))', ...
+                searchTerm);
             
             % Match Gas Mixture
         elseif searchGroup == 3
             searchTerm = strtrim(lower(searchTerm));
-            
             switch searchTerm
                 case 'nitrogen'
                     searchTerm = 'n2';
@@ -218,7 +212,6 @@ resetB =  uicontrol('Parent',buttonPanel, ...
                 case 'water'
                     searchTerm = 'h2o';
             end
-            
             count = 0;
             for i = 1:size(tData,1)
                 for i1 = 1:size(gasMixture{i},1)
@@ -262,30 +255,13 @@ resetB =  uicontrol('Parent',buttonPanel, ...
             end
             
         elseif searchGroup == 88
-            count = 0;
-            for i = 1:size(tData,1)
-                if str2double(tData(i,3)) == 0
-                    count = count + 1;
-                    for j = 1:size(tData,2)
-                        filterTable{count,j} = tData{i,j};
-                        filterOnClick{count,j} = oData{i,j};
-                        filterDataPoints{count} = dPoint{1,i};
-                    end
-                end
-            end
+            [filterTable, filterOnClick, filterDataPoints] = filterSub( ...
+                tData, oData, dPoint, 'str2double(tData(i,3)) == 0', [] );
         elseif searchGroup == 55
-            count = 0;
-            for i = 1:size(tData,1)
-                if str2double(tData(i,3)) > 0
-                    count = count + 1;
-                    for j = 1:size(tData,2)
-                        filterTable{count,j} = tData{i,j};
-                        filterOnClick{count,j} = oData{i,j};
-                        filterDataPoints{count} = dPoint{1,i};
-                    end
-                end
-            end
+            [filterTable, filterOnClick, filterDataPoints] = filterSub( ...
+                tData, oData, dPoint, 'str2double(tData(i,3)) > 0', [] );
         end
+        
         % Update shown table
         dataPoints = filterDataPoints;
         onClickData = filterOnClick;
@@ -538,4 +514,16 @@ resetB =  uicontrol('Parent',buttonPanel, ...
             xlswrite(filename, nTable, 'Sheet1', 'A3'); % array under the header.
         end
     end
+
+    function createTargetList(hh,dd, Htable)
+        selectedExp = {};
+        for i = 1:size(Htable.Data,1)
+            if Htable.Data{i,1} == 1
+                % issue when used with filters.
+                selectedExp{end+1} = [onClickData(i,2), onClickData(i,6), onClickData(i,8)];
+            end
+        end
+        selectedExp{:}
+    end
+
 end
