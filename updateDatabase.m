@@ -1,9 +1,5 @@
 function updateDatabase(hh, dd, curDir)
 %% Download List of Experimental Records Dealing with Coal
-% IFRF data is 763 experiments
-%
-% Update 2016.02.19 - revised for StandAlone Version
-% Update 2016.01.19  - onClickData now has experimentalIDs
 
 h = waitbar(0);
 waitbar(0,h,sprintf('Searching Warehouse for Coal Data'))
@@ -48,6 +44,7 @@ dataPoints  = cell(1,dGCount);
 gasMixture  = cell(1,dGCount);
 expPrimeID = cell(1,dGCount);
 dataGroupID = cell(1,dGCount);
+fuelRank = cell(1,dGCount);
 %% Process Data
 dGCount = 0;
 h = waitbar(0);
@@ -82,6 +79,7 @@ for i = 1:n
             fuelPrefKey{dGCount} = coalData(i).Fuel;
             expPrimeID{dGCount} = coalData(i).PrimeId;
             
+            
             % Get O2 Volume Fraction from XML
             %     commonProp = xmlDocument.GetElementsByTagName('commonProperties');
             %     property = commonProp.Item(0).GetElementsByTagName('property');
@@ -108,6 +106,16 @@ for i = 1:n
                     break
                 end
             end
+            
+            % Get Coal Rank Information
+            speDoc = ReactionLab.Util.PrIMeData.SpeciesDepot.PrIMeSpecies(fuelPrimeID{dGCount});
+            nameElem = speDoc.Doc.GetElementsByTagName('name');
+            for nE = 1:nameElem.Count
+                if strcmpi(char(nameElem.Item(nE-1).GetAttribute('type')), 'FuelType')
+                    fuelRank{dGCount} = char(nameElem.Item(nE-1).InnerText);
+                end
+            end
+            
             
             % Get Common Temperature
             c = 0;
@@ -159,6 +167,7 @@ for i = 1:n
             commonTemp{dGCount} = commonTemp{dGCount-1};
             gasMixture{dGCount} = gasMixture{dGCount-1};
             expPrimeID{dGCount} = expPrimeID{dGCount-1};
+            fuelRank{dGCount} = fuelRank{dGCount-1};
         end
         
         
@@ -212,8 +221,8 @@ for i = 1:length(gasMixture)
 end
 
 checkBoxData = zeros(1,length(fuelPrefKey)); checkBoxData = num2cell(logical(checkBoxData));
-tableData =     [checkBoxData', fuelPrefKey' initialO2' formattedGasMix' commonTemp'  propertyName' bibPrefKey'];
-onClickData =   [checkBoxData', fuelPrimeID', tableData(:,3), tableData(:,4), tableData(:,5), expPrimeID', bibPrimeID' dataGroupID' ];
+tableData =     [checkBoxData', fuelPrefKey', fuelRank', initialO2', formattedGasMix', commonTemp', propertyName', bibPrefKey'];
+onClickData =   [checkBoxData', fuelPrimeID', tableData(:,3), tableData(:,4), tableData(:,5), tableData(:,6), expPrimeID', bibPrimeID' dataGroupID' ];
 
 coalApp.tableData = tableData;
 coalApp.onClickData = onClickData;
