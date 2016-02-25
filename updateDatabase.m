@@ -17,11 +17,17 @@ for i = 1:n
         tic
     end
     coalData(i) = ReactionLab.Util.PrIMeData.ExperimentDepot.PrIMeExperiments(coalList{i});
-    if i == 1
+    if i == 10
         a = toc;
     end
-    p = round(i/n,3);
-    waitbar(p,h,sprintf('Downloading experiments from Warehouse \n %.1f%% complete (%.1f sec)',p*100, (n-i)*a))
+    if i < 10
+       waitbar(0,h,sprintf('Downloading experiments from Warehouse \n 0%% complete'))
+        
+    else
+        p = round(i/n,3);
+        waitbar(p,h,sprintf('Downloading experiments from Warehouse \n %.1f%% complete (%.1f sec)',p*100, (n-i)*a/10))
+        
+    end
 end
 close(h)
 
@@ -69,9 +75,11 @@ for i = 1:n
                     % references)
                     bibPrimeID{dGCount} = coalData(i).Biblio{1};
                     bibPrefKey{dGCount} = coalData(i).Biblio{1,2};
+                else
+                    bibPrimeID{dGCount} = coalData(i).Biblio{1};
+                    bibPrefKey{dGCount} = coalData(i).Biblio{2};
                 end
             else
-                %need to test this...
                 bibPrimeID{dGCount} = coalData(i).Biblio{1};
                 bibPrefKey{dGCount} = coalData(i).Biblio{2};
             end
@@ -108,14 +116,15 @@ for i = 1:n
             end
             
             % Get Coal Rank Information
+            t = {};
             speDoc = ReactionLab.Util.PrIMeData.SpeciesDepot.PrIMeSpecies(fuelPrimeID{dGCount});
             nameElem = speDoc.Doc.GetElementsByTagName('name');
             for nE = 1:nameElem.Count
                 if strcmpi(char(nameElem.Item(nE-1).GetAttribute('type')), 'FuelType')
-                    fuelRank{dGCount} = char(nameElem.Item(nE-1).InnerText);
+                    t{end+1} = {char(nameElem.Item(nE-1).InnerText)};
                 end
             end
-            
+            fuelRank{dGCount} = t;
             
             % Get Common Temperature
             c = 0;
@@ -195,12 +204,16 @@ for i = 1:n
         end
         
         
-        if i == 1
+        if i == 10
             a = toc;
         end
     end
-    p = round(i/n,3);
-    waitbar(p,h,sprintf('Processing Data \n %.1f%% complete (%.1f sec)',p*100, (n-i)*a))
+    if i < 10
+        waitbar(0,h,sprintf('Processing Data \n 0%% complete'))
+    else 
+        p = round(i/n,3);
+        waitbar(p,h,sprintf('Processing Data \n %.1f%% complete (%.1f sec)',p*100, (n-i)*a/10))
+    end
 end
 close(h)
 
@@ -220,14 +233,27 @@ for i = 1:length(gasMixture)
     propertyName{i} = [sprintf('%s, ',dataPoints{i}{1,end-1}),dataPoints{i}{1,end}];
 end
 
+formattedFuelRank = cell(1,dGCount);
+% create strings for Fuel Rank to display 
+for i = 1:length(fuelRank)
+    for i1 = 1:size(fuelRank{i},2)
+        if i1 < size(fuelRank{i},2)
+            formattedFuelRank{i} = [formattedFuelRank{i}, fuelRank{i}{i1}{1}, ' / '];
+        else
+            formattedFuelRank{i} = [formattedFuelRank{i}, fuelRank{i}{i1}{1}];
+        end
+    end
+end
+
 checkBoxData = zeros(1,length(fuelPrefKey)); checkBoxData = num2cell(logical(checkBoxData));
-tableData =     [checkBoxData', fuelPrefKey', fuelRank', initialO2', formattedGasMix', commonTemp', propertyName', bibPrefKey'];
+tableData =     [checkBoxData', fuelPrefKey', formattedFuelRank', initialO2', formattedGasMix', commonTemp', propertyName', bibPrefKey'];
 onClickData =   [checkBoxData', fuelPrimeID', tableData(:,3), tableData(:,4), tableData(:,5), tableData(:,6), expPrimeID', bibPrimeID' dataGroupID' ];
 
 coalApp.tableData = tableData;
 coalApp.onClickData = onClickData;
 coalApp.dataPoints = dataPoints;
 coalApp.gasMixture = gasMixture;
+coalApp.fuelRank = fuelRank;
 
 %%
 

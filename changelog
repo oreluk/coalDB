@@ -1,10 +1,11 @@
 Change Log:
+ 2016.02.24    - Improved timing on update function (tic/toc over 10 iterations instead of 1 provides more realistic time estimates )
+               - Capturing multiple FuelType in cell array 
+               - Added Slash to multiple Coal Rank entries in table display
+               - Fixed issue with update Function not getting bib references on new entries
+
  2016.02.23    - Added Coal Rank information to the Table Data
-               - 
 
-
-
-               
  2016.02.22    - Added tooltip for plotted data points. 
                - Automatically reset table if no data shown. 
                - Filters in menu now work correct when used consecutively.
