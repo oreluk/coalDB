@@ -4,7 +4,7 @@ coalDB is a stand-alone application to the PrIMe Coal Database.
 
 ## Motivation
 
-Ease of access to the PrIMe Coal Database. Discover, visualize, and acts as an easy pathway from the PrIMe Coal Database to the bound-to-bound data collaboration(B2B-DC) data analysis.
+Ease of access to the PrIMe Coal Database. Allows users to easily discover, visualize coal data. This application acts as an easy pathway from the PrIMe Coal Database to the bound-to-bound data collaboration(B2B-DC) data analysis.
 
 ## Requirements
 
