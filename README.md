@@ -21,34 +21,7 @@ Ease of access to the PrIMe Coal Database. Allows users to easily discover, visu
 * Show only particular ranges of values -- is there an easy way?
 
 * Filtering done through search of XML (not table results) search BY ____ uimenulist of sections/attributes to search by. Any field can be used
-
-### Workflow
-
-* Select Experiments
-
-* Create Target.h5
-..* species primeIDs
-..* concentrations
-..* features
-   
-
-*  BG build xml to upload  ( works stand-alone but also can upload/store work in prime)
-    
-* Input bounds on exp
-
-*  Point to model (QOI)
-
-
-* input bounds on h/prior
-
-* Sensitivity 
-
-* choose active variables
-
-* build SM
-
-* create b2bdc obj
-
+* Introduction to add to DB -- easy way to create xml & upload
 
 ## License
 
