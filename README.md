@@ -17,11 +17,11 @@ Ease of access to the PrIMe Coal Database. Allows users to easily discover, visu
 
 ## Future Changes
 
-* Sort by columns
+* Sort by columns (difficult)
 * Show only particular ranges of values -- is there an easy way?
 
 * Filtering done through search of XML (not table results) search BY ____ uimenulist of sections/attributes to search by. Any field can be used
-* Introduction to add to DB -- easy way to create xml & upload
+* Introduction to add to DB -- easy way to create xml & upload. hdf works. h5 does not!
 
 ## License
 
