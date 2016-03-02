@@ -1,4 +1,6 @@
 Change Log:
+2016.03.01     - Added Sandia Data to WH. Make sure all values are shown inside DB. Might need to make a few display changes 
+
  2016.02.24    - Improved timing on update function (tic/toc over 10 iterations instead of 1 provides more realistic time estimates )
                - Capturing multiple FuelType in cell array 
                - Added Slash to multiple Coal Rank entries in table display
