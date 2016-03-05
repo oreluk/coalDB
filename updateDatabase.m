@@ -45,12 +45,14 @@ bibPrefKey  = cell(1,dGCount);
 fuelPrimeID = cell(1,dGCount);
 fuelPrefKey = cell(1,dGCount);
 initialO2   = cell(1,dGCount);
+initialH2O = cell(1,dGCount);
 commonTemp  = cell(1,dGCount);
 dataPoints  = cell(1,dGCount);
 gasMixture  = cell(1,dGCount);
 expPrimeID = cell(1,dGCount);
 dataGroupID = cell(1,dGCount);
 fuelRank = cell(1,dGCount);
+
 %% Process Data
 dGCount = 0;
 h = waitbar(0);
@@ -104,6 +106,18 @@ for i = 1:n
                         o2String = str2double(o2String) * 100;
                         initialO2{dGCount} = num2str(round( o2String, 3 ));
                         done = done + 1;
+                    end
+
+
+
+                    % NEW TESTING
+                elseif sLinks.Item(sList-1).Attributes.Item(0).Value == 'H2O'
+                    if isempty(sLinks.Item(sList-1).NextSibling) % if there is no amount node
+                        initialH2O{dGCount} = '-';
+                    else
+                        h2oString = char(sLinks.Item(sList-1).NextSibling.InnerText);
+                        h2oString = str2double(h2oString) * 100;
+                        initialH2O{dGCount} = num2str(round( h2oString, 3));
                     end
                 end
                 if sLinks.Item(sList-1).Attributes.Item(0).Value == fuelPrefKey{dGCount}
@@ -173,6 +187,7 @@ for i = 1:n
             fuelPrimeID{dGCount} = fuelPrimeID{dGCount-1};
             fuelPrefKey{dGCount} = fuelPrefKey{dGCount-1};
             initialO2{dGCount} = initialO2{dGCount-1};
+            initialH2O{dGCount} = initialH2O{dGCount-1};
             commonTemp{dGCount} = commonTemp{dGCount-1};
             gasMixture{dGCount} = gasMixture{dGCount-1};
             expPrimeID{dGCount} = expPrimeID{dGCount-1};
@@ -246,8 +261,8 @@ for i = 1:length(fuelRank)
 end
 
 checkBoxData = zeros(1,length(fuelPrefKey)); checkBoxData = num2cell(logical(checkBoxData));
-tableData =     [checkBoxData', fuelPrefKey', formattedFuelRank', initialO2', formattedGasMix', commonTemp', propertyName', bibPrefKey'];
-onClickData =   [checkBoxData', fuelPrimeID', tableData(:,3), tableData(:,4), tableData(:,5), tableData(:,6), expPrimeID', bibPrimeID' dataGroupID' ];
+tableData =     [checkBoxData', fuelPrefKey', formattedFuelRank', initialO2', initialH2O', formattedGasMix', commonTemp', propertyName', bibPrefKey'];
+onClickData =   [checkBoxData', fuelPrimeID', tableData(:,3), tableData(:,4), tableData(:,5), tableData(:,6), tableData(:,7), expPrimeID', bibPrimeID' dataGroupID' ];
 
 coalApp.tableData = tableData;
 coalApp.onClickData = onClickData;
