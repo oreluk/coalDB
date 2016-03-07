@@ -107,24 +107,23 @@ for i = 1:n
                         initialO2{dGCount} = num2str(round( o2String, 3 ));
                         done = done + 1;
                     end
-
-
-
-                    % NEW TESTING
-                elseif sLinks.Item(sList-1).Attributes.Item(0).Value == 'H2O'
-                    if isempty(sLinks.Item(sList-1).NextSibling) % if there is no amount node
-                        initialH2O{dGCount} = '-';
-                    else
-                        h2oString = char(sLinks.Item(sList-1).NextSibling.InnerText);
-                        h2oString = str2double(h2oString) * 100;
-                        initialH2O{dGCount} = num2str(round( h2oString, 3));
-                    end
                 end
                 if sLinks.Item(sList-1).Attributes.Item(0).Value == fuelPrefKey{dGCount}
                     fuelPrimeID{dGCount} = char(sLinks.Item(sList-1).Attributes.Item(1).Value);
                     done = done + 1;
                 end
-                if done == 2
+                if sLinks.Item(sList-1).Attributes.Item(0).Value == 'H2O'
+                    if isempty(sLinks.Item(sList-1).NextSibling) % if there is no amount node
+                        initialH2O{dGCount} = '-';
+                        done = done + 1;
+                    else
+                        h2oString = char(sLinks.Item(sList-1).NextSibling.InnerText);
+                        h2oString = str2double(h2oString) * 100;
+                        initialH2O{dGCount} = num2str(round( h2oString, 3));
+                        done = done + 1;
+                    end
+                end
+                if done == 3
                     break
                 end
             end
@@ -259,6 +258,9 @@ for i = 1:length(fuelRank)
         end
     end
 end
+
+emptyH2O = cellfun('isempty', initialH2O);
+initialH2O(emptyH2O) = {'-'};
 
 checkBoxData = zeros(1,length(fuelPrefKey)); checkBoxData = num2cell(logical(checkBoxData));
 tableData =     [checkBoxData', fuelPrefKey', formattedFuelRank', initialO2', initialH2O', formattedGasMix', commonTemp', propertyName', bibPrefKey'];

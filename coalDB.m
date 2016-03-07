@@ -8,17 +8,19 @@ function coalDB
 
 %% Load Data
 f = load(fullfile(pwd, 'coalData.mat'));
-tableDataOriginal = f.coalApp.tableData;
-onClickDataOriginal = f.coalApp.onClickData;
-dataPointsOriginal = f.coalApp.dataPoints;
-gasMixture = f.coalApp.gasMixture;
-onClickData = onClickDataOriginal;
-dataPoints = dataPointsOriginal;
+data.original.table = f.coalApp.tableData;
+data.original.click = f.coalApp.onClickData;
+data.original.dp = f.coalApp.dataPoints;
+data.original.gas = f.coalApp.gasMixture;
+
+onClickData = data.original.click;
+dataPoints = data.original.dp;
+gasMixture = data.original.gas;
 
 %% Create GUI
 
 fig = figure('Name','PrIMe Coal Database', ...
-    'Position',         [150 200 1030 550], ...
+    'Position',         [150 200 1080 550], ...
     'MenuBar',          'none', ...
     'NumberTitle',      'off', ...
     'Resize',           'on');
@@ -34,13 +36,13 @@ buttonPanel = uipanel('Parent', fig, ...
 tableDisplay = uitable('Parent', tablePanel, ...
     'Units', 'normalized',...
     'Position',         [0 0 1 0.8], ...
-    'ColumnWidth',      {50 200 75 50 100 60 270 200}, ...
+    'ColumnWidth',      {50 200 75 50 50 100 60 270 200}, ...
     'ColumnName',       {'Select', 'Coal Name',  'Coal Rank', '% O2', '% H2O', 'Gas Mixture', 'Temp [K]', 'Properties', 'Ref'}, ...
     'ColumnFormat',     {'logical', 'char', 'char', 'char', 'char', 'char', 'char'}, ...
     'ColumnEditable',   [true, false, false, false, false, false, false, false], ...
     'RowName',          [] , ...
     'CellSelectionCallback', @onClick, ...
-    'Data',             tableDataOriginal);
+    'Data',             data.original.table);
 
 % Menu Bar
 menuBar = uimenu(fig,'Label','Options');
@@ -50,10 +52,6 @@ pyroOption = uimenu(menuFilter, 'Label', 'Pyrolysis Experiments', ...
     'Callback', {@filterButton, 'pyro'});
 oxOption = uimenu(menuFilter, 'Label', 'Oxidation Experiments', ...
     'Callback', {@filterButton, 'oxidation'});
-
-% ifrfOption = uimenu(menuFilter, 'Label', 'IFRF Experiments');
-% sandiaOption = uimenu(menuFilter, 'Label', 'Sandia''s CCL Experiments');
-
 
 menuUpdate = uimenu(menuBar,'Label','Update Database', ...
     'Callback', {@updateDatabase, pwd});
@@ -92,7 +90,7 @@ resultsFoundText = uicontrol('Parent',buttonPanel,...
     'Style',            'text', ...
     'HorizontalAlignment', 'left', ...
     'FontSize',         10, ...
-    'String',           sprintf('Datasets Found: %s', num2str(size(tableDisplay.Data,1))));
+    'String',           sprintf('Data Groups Found: %s', num2str(size(tableDisplay.Data,1))));
 
 filterByMenu = uicontrol('Parent',buttonPanel, ...
     'Units',            'normalized', ...
@@ -100,7 +98,7 @@ filterByMenu = uicontrol('Parent',buttonPanel, ...
     'Style',            'popup', ...
     'HorizontalAlignment', 'left', ...
     'FontSize',         10, ...
-    'String',           {'Coal Name', 'Coal Rank', '%O2 (Greater Than Value)', 'Gas Mixture', 'Temperature (Greater Than Value)'});
+    'String',           {'Coal Name', 'Coal Rank', '%O2 (Greater Than Value)', '%H2O (Greater Than Value)', 'Gas Mixture', 'Temperature (Greater Than Value)'});
 
 filterB = uicontrol('Parent',buttonPanel,...
     'Units',            'normalized', ...
@@ -117,15 +115,6 @@ resetB =  uicontrol('Parent',buttonPanel, ...
     'FontSize',         10, ...
     'String',           'Reset Table', ...
     'CallBack',         @resetButton);
-
-% b2bdcB =  uicontrol('Parent',buttonPanel, ...
-%     'Units',            'normalized', ...
-%     'Position',         [0.86,0.1,0.12,0.3], ...
-%     'Style',            'pushbutton', ...
-%     'FontSize',         10, ...
-%     'String',           'Create Targets', ...
-%     'CallBack',         {@createTargetList, tableDisplay});
-
 
 %% Call Back Functions
 
@@ -170,103 +159,105 @@ resetB =  uicontrol('Parent',buttonPanel, ...
             searchGroup = filterByMenu.Value;
         end
         
-        % Reset if no datasets are shown.
+        % Reset if no Data Groups are shown.
         if size(tableDisplay.Data,1) == 0
             resetButton;
         end
         
-        filterTable = {};
-        filterOnClick = {};
-        filterDataPoints = {};
+        filtered.table = {};
+        filtered.click = {};
+        filtered.dp = {};
+        filtered.gas = {};
         
-        tData = tableDisplay.Data;
-        oData = onClickData;
-        dPoint = dataPoints;
-        
-        % Match Coal Name
-        if searchGroup == 1
-            [filterTable, filterOnClick, filterDataPoints] = filterSub( ...
-                tData, oData, dPoint, ...
-                'strfind( lower(tData{i,2}), strtrim(lower(searchTerm)) ) >= 1', ...
-                searchTerm);
-            
-        elseif searchGroup == 2
-            [filterTable, filterOnClick, filterDataPoints] = filterSub( ...
-                tData, oData, dPoint, ...
-                'strfind( lower(tData{i,3}), strtrim(lower(searchTerm)) ) >= 1', ...
-                searchTerm);
+        data.table = tableDisplay.Data;
+        data.click = onClickData;
+        data.dp = dataPoints;
+        data.gas = gasMixture;
 
-            % Match %O2
-        elseif searchGroup == 3
-            [filterTable, filterOnClick, filterDataPoints] = filterSub( ...
-                tData, oData, dPoint, ...
-                'str2double(tData(i,4)) >= str2double(strtrim(searchTerm))', ...
-                searchTerm);
-            
-            % Match Gas Mixture
-        elseif searchGroup == 4
-            searchTerm = strtrim(lower(searchTerm));
-            switch searchTerm
-                case 'nitrogen'
-                    searchTerm = 'n2';
-                case 'helium'
-                    searchTerm = 'he';
-                case 'argon'
-                    searchTerm = 'ar';
-                case 'oxygen'
-                    searchTerm = 'o2';
-                case 'water'
-                    searchTerm = 'h2o';
-            end
-            count = 0;
-            for i = 1:size(tData,1)
-                for i1 = 1:size(gasMixture{i},1)
-                    if strcmpi( strtrim(gasMixture{i}(i1,:)), searchTerm ) == 1
-                        count = count + 1;
-                        for j = 1:size(tData,2)
-                            filterTable{count,j} = tData{i,j};
-                            filterOnClick{count,j} = oData{i,j};
-                            filterDataPoints{count} = dPoint{1,i};
+        % Menu Options
+        if searchGroup == 88
+            filtered = filterSub( data, 'str2double(data.table(i,4)) == 0', [] );
+        elseif searchGroup == 55
+            filtered = filterSub(data, 'str2double(data.table(i,4)) > 0', [] );
+        end
+        
+        %% Search Menu Cases
+        switch filterByMenu.String{filterByMenu.Value}
+            case 'Coal Name'
+                filtered = filterSub( data, ...
+                    'strfind( lower(data.table{i,2}), strtrim(lower(searchTerm)) ) >= 1', ...
+                    searchTerm);
+                
+            case 'Coal Rank'
+                filtered = filterSub( data, ...
+                    'strfind( lower(data.table{i,3}), strtrim(lower(searchTerm)) ) >= 1', ...
+                    searchTerm);
+                
+            case '%O2 (Greater Than Value)'
+                filtered = filterSub( data, ...
+                    'str2double(data.table(i,4)) >= str2double(strtrim(searchTerm))', ...
+                    searchTerm);
+                
+            case '%H2O (Greater Than Value)'
+                 filtered = filterSub( data, ...
+                    'str2double(data.table(i,5)) >= str2double(strtrim(searchTerm))', ...
+                    searchTerm);
+                
+            case 'Gas Mixture',
+                searchTerm = strtrim(lower(searchTerm));
+                switch searchTerm
+                    case 'nitrogen'
+                        searchTerm = 'n2';
+                    case 'helium'
+                        searchTerm = 'he';
+                    case 'argon'
+                        searchTerm = 'ar';
+                    case 'oxygen'
+                        searchTerm = 'o2';
+                    case 'water'
+                        searchTerm = 'h2o';
+                end
+                count = 0;
+                for i = 1:size(data.table,1)
+                    for i1 = 1:size(gasMixture{i},1)
+                        if strcmpi( strtrim(gasMixture{i}(i1,:)), searchTerm ) == 1
+                            count = count + 1;
+                            for j = 1:size(data.table,2)
+                                filtered.table{count,j} = data.table{i,j};
+                                filtered.click{count,j} = data.click{i,j};
+                                filtered.dp{count} = data.dp{1,i};
+                                filtered.gas{count} = data.gas{1,i};
+                            end
                         end
                     end
                 end
-            end
-            
-        % Match Temperature (looks for temperature greater than string
-        elseif searchGroup == 5
-            searchTerm = str2double(strsplit(searchTerm,':'));
-            if size(searchTerm,2) == 1
-                [filterTable, filterOnClick, filterDataPoints] = filterSub( ...
-                    tData, oData, dPoint, ...
-                    'str2double(tData(i,6)) >= searchTerm', ...
-                    searchTerm);
-            else
-                [filterTable, filterOnClick, filterDataPoints] = filterSub( ...
-                    tData, oData, dPoint, ...
-                    'str2double(tData(i,6)) >= searchTerm(1) && str2double(tData(i,5)) <= searchTerm(2)', ...
-                    searchTerm);
-            end
-            
-        elseif searchGroup == 88
-            [filterTable, filterOnClick, filterDataPoints] = filterSub( ...
-                tData, oData, dPoint, 'str2double(tData(i,4)) == 0', [] );
-        elseif searchGroup == 55
-            [filterTable, filterOnClick, filterDataPoints] = filterSub( ...
-                tData, oData, dPoint, 'str2double(tData(i,4)) > 0', [] );
+                
+            case 'Temperature (Greater Than Value)'
+                searchTerm = str2double(strsplit(searchTerm,':'));
+                if size(searchTerm,2) == 1
+                    filtered = filterSub( data, ...
+                        'str2double(data.table(i,6)) >= searchTerm', ...
+                        searchTerm);
+                else
+                   filtered = filterSub( data, ...
+                        'str2double(data.table(i,6)) >= searchTerm(1) && str2double(data.table(i,5)) <= searchTerm(2)', ...
+                        searchTerm);
+                end
         end
-        
-        % Update shown table
-        dataPoints = filterDataPoints;
-        onClickData = filterOnClick;
-        tableDisplay.Data = filterTable;
-        resultsFoundText.String = sprintf('Datasets Found: %s', num2str(size(tableDisplay.Data,1)));
+
+        dataPoints = filtered.dp;
+        onClickData = filtered.click;
+        tableDisplay.Data = filtered.table;
+        gasMixture = filtered.gas;
+        resultsFoundText.String = sprintf('Data Groups Found: %s', num2str(size(tableDisplay.Data,1)));
     end
 
     function resetButton(h,d)
-        dataPoints = dataPointsOriginal;
-        onClickData = onClickDataOriginal;
-        tableDisplay.Data = tableDataOriginal;
-        resultsFoundText.String = sprintf('Datasets Found: %s', num2str(size(tableDisplay.Data,1)));
+        dataPoints = data.original.dp;
+        onClickData = data.original.click;
+        tableDisplay.Data = data.original.table;
+        gasMixture = data.original.gas;
+        resultsFoundText.String = sprintf('Data Groups Found: %s', num2str(size(tableDisplay.Data,1)));
     end
 
     function editBox(h,d)
