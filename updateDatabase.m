@@ -244,7 +244,7 @@ for i = 1:length(gasMixture)
             formattedGasMix{i} = [formattedGasMix{i}, gasMixture{i}(i1,:)];
         end
     end
-    propertyName{i} = [sprintf('%s, ',dataPoints{i}{1,end-1}),dataPoints{i}{1,end}];
+    propertyName{i} = strjoin(dataPoints{i}(1,1:end),', ');
 end
 
 formattedFuelRank = cell(1,dGCount);
