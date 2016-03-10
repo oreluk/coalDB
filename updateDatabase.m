@@ -205,18 +205,27 @@ for i = 1:n
             dataPoints{dGCount}{2,pList} = propUnits;
             dataPoints{dGCount}{3,pList} = propId;
         end
-        for numXs = 1:size(dataPoints{dGCount},2)
-            tagElements = xmlDocument.GetElementsByTagName(dataPoints{dGCount}{3,numXs});
-            for j = 1:tagElements.Count
-                if strfind(char(tagElements.Item(j-1).InnerText), ',') ~= 0
-                    accValue = strsplit(char(tagElements.Item(j-1).InnerText), ',');
-                    dataPoints{dGCount}{j+3,numXs} = str2double(accValue);
-                else
-                    dataPoints{dGCount}{j+3,numXs} = str2double(char(tagElements.Item(j-1).InnerText));
+        
+        % Marker for files with HDF5 Files: dataPoints{}(4,:) = NaN
+        if strcmpi(char(dG.Item(dList-1).GetAttribute('dataPointForm')), 'HDF5')
+            for j = 1:size(dataPoints{dGCount},2)
+                dataPoints{dGCount}{4,j} = NaN;
+            end
+        else
+            for numXs = 1:size(dataPoints{dGCount},2)
+                tagElements = xmlDocument.GetElementsByTagName(dataPoints{dGCount}{3,numXs});
+                for j = 1:tagElements.Count
+                    if strfind(char(tagElements.Item(j-1).InnerText), ',') ~= 0
+                        accValue = strsplit(char(tagElements.Item(j-1).InnerText), ',');
+                        dataPoints{dGCount}{j+3,numXs} = str2double(accValue);
+                    else
+                        dataPoints{dGCount}{j+3,numXs} = str2double(char(tagElements.Item(j-1).InnerText));
+                    end
                 end
             end
+            
+            
         end
-        
         
         if i == 10
             a = toc;
