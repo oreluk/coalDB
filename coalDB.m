@@ -4,7 +4,7 @@ function coalDB
 % Jim Oreluk 2015.08.21
 %
 %  Purpose: Allow users to view table of coal results, plot weight-loss,
-%  filter coal data by coal name
+%  filter coal data by coal Name
 
 %% Load Data
 f = load(fullfile(pwd, 'coalData.mat'));
