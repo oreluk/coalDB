@@ -44,6 +44,26 @@ else
         end
     end
     
+    % download h5 if present
+    
+    for i = 1:size(dataTable,2)
+        if all(isnan([dataTable{i}{4,:}]))
+            % All HDF5
+            link = ['http://warehouse.primekinetics.org/depository/experiments/data/' ...
+                ids{i}{1}, '/' ids{i}{2}, '.hdf'];
+            localH5 = websave( [ids{i}{2}, '.hdf'], link);
+            
+            % check if is matrix of values...or contains set of strings
+            
+            try
+                data = hdf5read(localH5, ids{i}{2});
+                % parse matrix directly
+            catch
+                
+            end
+        end
+    end
+    
     menuName = unique([columnNames{:}]);
     ax = axes('Parent', plotArea);
     
@@ -156,46 +176,26 @@ end
         cla(ax)
         
         for ii = 1:size(dataTable,2)
-            c = 0;    
-            if all(isnan([dataTable{1}{4,:}]))
-                %download url
-                link = ['http://warehouse.primekinetics.org/depository/experiments/data/' ...
-                    ids{ii}{1}, '/' ids{ii}{2}, '.hdf'];
-                localH5 = websave( [ids{ii}{2}, '.hdf'], link);
-                % check if is matrix of values...or contains set of strings
-                
-                hinf = hdf5info(localH5);
-                if strcmpi(hinf.GroupHierarchy.Groups.Datasets(1).Datatype.Class, ...
-                        'H5T_STRING')
-                    % WEHAVE TO PARSE BY STRING INPUT
-                    
-                else
-                    
-                   % Parse by matrix 
+            c = 0;
+            for jj = 1:size(dataTable{ii},2)
+                if strcmpi(xMenu.String{xMenu.Value}, dataTable{ii}{1,jj})
+                    xValues = dataTable{ii}(:,jj);
+                    s = xValues;  s(1:3,:) = [];
+                    xValues = cell2mat(s);
+                    xUnits = dataTable{ii}(2,jj);
+                    xName = dataTable{ii}(1,jj);
+                    c = c + 1;
                 end
-                
-                % add values to xname, yname and values
-                
-            else
-                for jj = 1:size(dataTable{ii},2)
-                    if strcmpi(xMenu.String{xMenu.Value}, dataTable{ii}{1,jj})
-                        xValues = dataTable{ii}(:,jj);
-                        s = xValues;  s(1:3,:) = [];
-                        xValues = cell2mat(s);
-                        xUnits = dataTable{ii}(2,jj);
-                        xName = dataTable{ii}(1,jj);
-                        c = c + 1;
-                    end
-                    if strcmpi(yMenu.String{yMenu.Value}, dataTable{ii}{1,jj})
-                        yValues = dataTable{ii}(:,jj);
-                        s = yValues;  s(1:3,:) = [];
-                        yValues = cell2mat(s);
-                        yUnits = dataTable{ii}(2,jj);
-                        yName = dataTable{ii}(1,jj);
-                        c = c + 1;
-                    end
+                if strcmpi(yMenu.String{yMenu.Value}, dataTable{ii}{1,jj})
+                    yValues = dataTable{ii}(:,jj);
+                    s = yValues;  s(1:3,:) = [];
+                    yValues = cell2mat(s);
+                    yUnits = dataTable{ii}(2,jj);
+                    yName = dataTable{ii}(1,jj);
+                    c = c + 1;
                 end
             end
+            
             
             % Sort in Ascending Order of xValues
             [xValues, ind] = sort(xValues);
