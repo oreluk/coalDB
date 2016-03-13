@@ -52,14 +52,12 @@ else
             link = ['http://warehouse.primekinetics.org/depository/experiments/data/' ...
                 ids{i}{1}, '/' ids{i}{2}, '.hdf'];
             localH5 = websave( [ids{i}{2}, '.hdf'], link);
-            
-            % check if is matrix of values...or contains set of strings
-            
             try
                 data = hdf5read(localH5, ids{i}{2});
-                % parse matrix directly
+                dataTable{i}(4,:) = [];
+                dataTable{i} = [dataTable{i}; num2cell(data')];
             catch
-                
+              % if strings in hdf....handle differently  
             end
         end
     end
