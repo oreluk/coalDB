@@ -46,6 +46,8 @@ else
     
     % download h5 if present
     
+    h = waitbar(0);
+    waitbar(0,h,sprintf('Getting Data From PrIMe Warehouse'))
     for i = 1:size(dataTable,2)
         if all(isnan([dataTable{i}{4,:}]))
             % All HDF5
@@ -57,10 +59,22 @@ else
                 dataTable{i}(4,:) = [];
                 dataTable{i} = [dataTable{i}; num2cell(data')];
             catch
-              % if strings in hdf....handle differently  
+                for j = 1:size(dataTable{i},2)
+                    h5s = hdf5read(localH5, strcat(ids{i}{2}, '/', dataTable{i}{3,j}));
+                    for j1 = 1:length(h5s)
+                        temp = strsplit(h5s(j1).Data, ','); 
+                        data{j1,j} = str2num(temp{1});
+                    end 
+                end
+                dataTable{i}(4,:) = [];
+                dataTable{i} = [dataTable{i}; data];
             end
+            delete(localH5)
         end
+        p = round(i/size(dataTable,2),3);
+        waitbar(p,h,sprintf('Getting Data From PrIMe Warehouse %.1f%% ', p*100))
     end
+    close(h)
     
     menuName = unique([columnNames{:}]);
     ax = axes('Parent', plotArea);
@@ -125,11 +139,11 @@ else
     nTable = [];
     for j = 1:length(dataTable)
         s = dataTable{j};  s(1:3,:) = [];
-        temp{j} = cell2mat(s);
+        sub{j} = cell2mat(s);
         sx = size(nTable);
-        sy = size(temp{j});
+        sy = size(sub{j});
         aa = max(sx(1), sy(1));
-        z = [[nTable; NaN(abs([aa 0]-sx))],[temp{j}; NaN(abs([aa 0]-sy))]];
+        z = [[nTable; NaN(abs([aa 0]-sx))],[sub{j}; NaN(abs([aa 0]-sy))]];
         nTable = z;
     end
     
