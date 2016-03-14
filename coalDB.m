@@ -41,7 +41,7 @@ tableDisplay = uitable('Parent', tablePanel, ...
     'ColumnFormat',     {'logical', 'char', 'char', 'char', 'char', 'char', 'char'}, ...
     'ColumnEditable',   [true, false, false, false, false, false, false, false], ...
     'RowName',          [] , ...
-    'CellSelectionCallback', {@onClick, onClickData}, ...
+    'CellSelectionCallback', @onClick, ...
     'Data',             data.original.table);
 
 % Menu Bar
@@ -145,7 +145,7 @@ resetB =  uicontrol('Parent',buttonPanel, ...
         data.click = onClickData;
         data.dp = dataPoints;
         data.gas = gasMixture;
-
+        
         % Menu Options
         if searchGroup == 88
             filtered = filterSub( data, 'str2double(data.table(i,4)) == 0', [] );
@@ -171,7 +171,7 @@ resetB =  uicontrol('Parent',buttonPanel, ...
                     searchTerm);
                 
             case '%H2O (Greater Than Value)'
-                 filtered = filterSub( data, ...
+                filtered = filterSub( data, ...
                     'str2double(data.table(i,5)) >= str2double(strtrim(searchTerm))', ...
                     searchTerm);
                 
@@ -211,17 +211,42 @@ resetB =  uicontrol('Parent',buttonPanel, ...
                         'str2double(data.table(i,6)) >= searchTerm', ...
                         searchTerm);
                 else
-                   filtered = filterSub( data, ...
+                    filtered = filterSub( data, ...
                         'str2double(data.table(i,6)) >= searchTerm(1) && str2double(data.table(i,5)) <= searchTerm(2)', ...
                         searchTerm);
                 end
         end
-
         dataPoints = filtered.dp;
         onClickData = filtered.click;
         tableDisplay.Data = filtered.table;
         gasMixture = filtered.gas;
         resultsFoundText.String = sprintf('Data Groups Found: %s', num2str(size(tableDisplay.Data,1)));
+    end
+
+    function onClick(h, d)
+        NET.addAssembly('System.Xml');
+        if size(d.Indices,1) == 1
+            if all(d.Indices(2) ~= [1, 3, 4, 5, 6, 7])
+                % Clicking Coal Name
+                if d.Indices(2) == 2
+                    ReactionLab.Util.gate2primeData('show',{'primeId',onClickData{d.Indices(1),d.Indices(2)}});
+                    % Get DOM XML of Chemical Analysis File
+                    speciesPrimeID = onClickData{d.Indices(1),d.Indices(2)};
+                    s = strcat('species/data/',speciesPrimeID,'/ca00000001.xml');
+                    url = strcat('http://warehouse.primekinetics.org/depository/', s);
+                    rawXML = urlread(url);
+                    
+                    cleanStr = strrep(rawXML,' xmlns=""','');
+                    cleanExpDoc = System.Xml.XmlDocument;
+                    cleanExpDoc.LoadXml(cleanStr);
+                    % View DOM
+                    xv = PrimeKinetics.PrimeHandle.XmlViewer(cleanExpDoc);
+                    xv.Show();
+                else
+                    ReactionLab.Util.gate2primeData('show',{'primeId',onClickData{d.Indices(1),d.Indices(2)}});
+                end
+            end
+        end
     end
 
     function resetButton(h,d)
@@ -249,5 +274,4 @@ resetB =  uicontrol('Parent',buttonPanel, ...
         end
         selectedExp{:}
     end
-
 end
