@@ -15,9 +15,12 @@ for i = 1:size(data.table,1)
         count = count + 1;
         for j = 1:size(data.table,2)
             filtered.table{count,j} = data.table{i,j};
-            filtered.click{count,j} = data.click{i,j};
             filtered.dp{count} = data.dp{1,i};
             filtered.gas{count} = data.gas{1,i};
+            filtered.click{count,j} = data.click{i,j};
+            if j == size(data.table,2)
+                filtered.click{count,j+1} = data.click{i,j+1};
+            end
         end
     end
 end

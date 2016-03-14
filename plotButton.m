@@ -1,6 +1,7 @@
-function plotButton(h, d, Htable, onClickData, dataPoints)
+function plotButton(h, d, Htable, data)
 NET.addAssembly('System.Xml');
 count = 0;
+
 for i = 1:size(Htable.Data,1)
     if Htable.Data{i,1} == 1
         count = 1;
@@ -31,69 +32,17 @@ else
     columnNames = {};
     numProps = {};
     ids = {};
-    
-    
     count = 0;
     for i = 1:size(Htable.Data,1)
         if Htable.Data{i,1} == 1
             count = count + 1;
             legendNames{count} = [Htable.Data{i,2}, ' @ ', Htable.Data{i,7}, 'K (', num2str(Htable.Data{i,4}),'% O2)'];
-            columnNames{count} = dataPoints{i}(1,:);
-            dataTable{count} = dataPoints{i}(:,1:size(columnNames{count},2));
-            numProps{count} = size(dataPoints{i},2);
-            ids{count} = [onClickData(i,8), onClickData(i,10)];
+            columnNames{count} = data.dp{i}(1,:);
+            dataTable{count} = data.dp{i}(:,1:size(columnNames{count},2));
+            numProps{count} = size(data.dp{i},2);
+            ids{count} = [data.click(i,8), data.click(i,10)];
         end
     end
-    
-    % download h5 if present
-    
-    h = waitbar(0);
-    waitbar(0,h,sprintf('Downloading Data From PrIMe Warehouse'))
-    for i = 1:size(dataTable,2)
-        % All HDF5
-        if all(strcmpi([dataTable{i}(4,:)], 'dataInHDF'))
-            link = ['http://warehouse.primekinetics.org/depository/experiments/data/' ...
-                ids{i}{1}, '/' ids{i}{2}, '.hdf'];
-            localH5 = websave( [ids{i}{2}, '.hdf'], link);
-            try
-                data = hdf5read(localH5, ids{i}{2});
-                dataTable{i}(4,:) = [];
-                dataTable{i} = [dataTable{i}; num2cell(data')];
-            catch
-                for j = 1:size(dataTable{i},2)
-                    h5s = hdf5read(localH5, strcat(ids{i}{2}, '/', dataTable{i}{3,j}));
-                    for j1 = 1:length(h5s)
-                        temp = strsplit(h5s(j1).Data, ','); 
-                        data{j1,j} = str2double(temp{1});
-                    end 
-                end
-                dataTable{i}(4,:) = [];
-                dataTable{i} = [dataTable{i}; data];
-            end
-            delete(localH5)
-        elseif all(strcmpi([dataTable{i}(4,:)], 'dataInXML'))
-            % download xml / dg
-            link = ['http://warehouse.primekinetics.org/depository/experiments/catalog/' ...
-                ids{i}{1}, '.xml'];
-            downString = webread(link);
-            expDoc = System.Xml.XmlDocument;
-            expDoc.LoadXml(downString);
-            for numXs = 1:size(dataTable{i},2)
-                tagElements = expDoc.GetElementsByTagName(dataTable{i}{3,numXs});
-                for j = 1:tagElements.Count
-                    if strfind(char(tagElements.Item(j-1).InnerText), ',') ~= 0
-                        temp = strsplit(char(tagElements.Item(j-1).InnerText), ',');
-                        dataTable{i}{j+3,numXs} = str2double(temp{1});
-                    else
-                        dataTable{i}{j+3,numXs} = str2double(char(tagElements.Item(j-1).InnerText));
-                    end
-                end
-            end
-        end
-        p = round(i/size(dataTable,2),3);
-        waitbar(p,h,sprintf('Downloading Data From PrIMe Warehouse %.1f%% ', p*100))
-    end
-    close(h)
     
     menuName = unique([columnNames{:}]);
     ax = axes('Parent', plotArea);
@@ -144,6 +93,62 @@ else
         'Value',        1, ...
         'String',       'Display Line', ...
         'CallBack',         @setPlot);
+    
+    % Download Data
+    h = waitbar(0);
+    waitbar(0,h,sprintf('Downloading Data From PrIMe Warehouse'))
+    for i = 1:size(dataTable,2)
+        % All HDF5
+        if all(strcmpi([dataTable{i}(4,:)], 'dataInHDF'))
+            link = ['http://warehouse.primekinetics.org/depository/experiments/data/' ...
+                ids{i}{1}, '/' ids{i}{2}, '.hdf'];
+            localH5 = websave( [ids{i}{2}, '.hdf'], link);
+            try
+                data = hdf5read(localH5, ids{i}{2});
+                dataTable{i}(4,:) = [];
+                dataTable{i} = [dataTable{i}; num2cell(data')];
+            catch
+                for j = 1:size(dataTable{i},2)
+                    h5s = hdf5read(localH5, strcat(ids{i}{2}, '/', dataTable{i}{3,j}));
+                    for j1 = 1:length(h5s)
+                        temp = strsplit(h5s(j1).Data, ','); 
+                        data{j1,j} = str2double(temp{1});
+                    end 
+                end
+                dataTable{i}(4,:) = [];
+                dataTable{i} = [dataTable{i}; data];
+            end
+            delete(localH5)
+        elseif all(strcmpi([dataTable{i}(4,:)], 'dataInXML'))
+            % Download XML 
+            link = ['http://warehouse.primekinetics.org/depository/experiments/catalog/' ...
+                ids{i}{1}, '.xml'];
+            downString = webread(link);
+            expDoc = System.Xml.XmlDocument;
+            expDoc.LoadXml(downString);
+            dgGroups = expDoc.GetElementsByTagName('dataGroup');
+            for dgC = 1:dgGroups.Count
+                if strcmpi(char(dgGroups.Item(dgC-1).GetAttribute('id')), ids{i}{2})
+                    for numXs = 1:size(dataTable{i},2)
+                        tagElements = dgGroups.Item(dgC-1).GetElementsByTagName(dataTable{i}{3,numXs});
+                        for j = 1:tagElements.Count
+                            if strfind(char(tagElements.Item(j-1).InnerText), ',') ~= 0
+                                temp = strsplit(char(tagElements.Item(j-1).InnerText), ',');
+                                dataTable{i}{j+3,numXs} = str2double(temp{1});
+                            else
+                                dataTable{i}{j+3,numXs} = str2double(char(tagElements.Item(j-1).InnerText));
+                            end
+                        end
+                    end
+                end
+                
+            end
+        end
+        p = round(i/size(dataTable,2),3);
+        waitbar(p,h,sprintf('Downloading Data From PrIMe Warehouse %.1f%% ', p*100))
+    end
+    close(h)
+    
     
     [xUnits, yUnits] = setPlot;
     grid(ax, 'on')
@@ -227,28 +232,16 @@ end
                 end
             end
             
-            
             % Sort in Ascending Order of xValues
             [xValues, ind] = sort(xValues);
             yValues = yValues(ind);
             
             % Plot Values
             if c == 2  % Both xValues && yValues matched
-                if size(xValues,2) ~= 1 && size(yValues,2) ~= 1
-                    errorbarxy(ax,xValues(:,1), yValues(:,1), xValues(:,2), yValues(:,2), {'ko', 'k', 'k'});
-                elseif size(xValues,2) ~= 1
-                    % ISSUE: considers the error as y-E y+E not x-E x+E
-                    
-                    % for the time being
-                    plot(ax, xValues(:,1), yValues(:,1), 'o')
-                elseif size(yValues,2) ~= 1
-                    errorbar(ax,xValues(:,1), yValues(:,1), yValues(:,2), 'ko');
+                if showLine.Value == 1
+                    plot(ax, xValues(:,1), yValues(:,1), 'o-')
                 else
-                    if showLine.Value == 1
-                        plot(ax, xValues(:,1), yValues(:,1), 'o-')
-                    else
-                        plot(ax, xValues(:,1), yValues(:,1), 'o')
-                    end
+                    plot(ax, xValues(:,1), yValues(:,1), 'o')
                 end
             else
                 warndlg('Please select coals with similar properties to plot')

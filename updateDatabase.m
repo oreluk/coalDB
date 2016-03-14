@@ -88,12 +88,8 @@ for i = 1:n
             
             fuelPrefKey{dGCount} = coalData(i).Fuel;
             expPrimeID{dGCount} = coalData(i).PrimeId;
-            
-            
+                
             % Get O2 Volume Fraction from XML
-            %     commonProp = xmlDocument.GetElementsByTagName('commonProperties');
-            %     property = commonProp.Item(0).GetElementsByTagName('property');
-            
             done = 0;
             sLinks = xmlDocument.GetElementsByTagName('speciesLink');          
             for sList = 1:sLinks.Count
@@ -166,7 +162,7 @@ for i = 1:n
                 commonTemp{dGCount} = '-';
             end
             
-            % gas mixtures
+            % Gas mixtures
             gasNodes = ReactionLab.Util.getnode(xmlDocument,'property','name','initial composition');
             compNodes = gasNodes.GetElementsByTagName('component');
             for i1 = 1:double(compNodes.Count)
@@ -180,7 +176,7 @@ for i = 1:n
                 end
             end
         else
-            % copy repeated calculations
+            % Copy if Repeat
             bibPrimeID{dGCount} = bibPrimeID{dGCount-1};
             bibPrefKey{dGCount} = bibPrefKey{dGCount-1};
             fuelPrimeID{dGCount} = fuelPrimeID{dGCount-1};
@@ -194,8 +190,7 @@ for i = 1:n
         end
         
         
-        % Pull data structure for datapoints
-        
+        % Pull Data Node Information 
         prop = dG.Item(dList-1).GetElementsByTagName('property');
         for pList = 1:prop.Count
             propDescription = char(prop.Item(pList-1).GetAttribute('description'));
@@ -206,7 +201,7 @@ for i = 1:n
             dataPoints{dGCount}{3,pList} = propId;
         end
         
-        % Marker for files with HDF5 Files: dataPoints{}(4,:) = NaN
+        % Marker for HDF or XML Storage
         if strcmpi(char(dG.Item(dList-1).GetAttribute('dataPointForm')), 'HDF5')
             for j = 1:size(dataPoints{dGCount},2)
                 dataPoints{dGCount}{4,j} = 'dataInHDF';
@@ -233,7 +228,7 @@ close(h)
 
 formattedGasMix = cell(1,dGCount);
 propertyName = cell(1,dGCount);
-% create strings for gas Mixture display & properties
+% Create Strings for gas Mixture display & properties
 for i = 1:length(gasMixture)
     for i1 = 1:size(gasMixture{i},1)
         if i1 < size(gasMixture{i},1)
@@ -273,9 +268,7 @@ coalApp.fuelRank = fuelRank;
 %%
 
 save(fullfile(curDir, 'coalData.mat'), 'coalApp')
-% save(fullfile(comp.OutputDirectory, 'coalApp.mat'), 'coalApp')
 
 %% Restart Application
-
 close(gcf)
 coalDB;

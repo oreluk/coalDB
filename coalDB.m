@@ -6,17 +6,16 @@ function coalDB
 %  Purpose: Allow users to view table of coal results, plot weight-loss,
 %  filter coal data by coal Name
 
-%% Load Data
+%% Load Data Structure
 f = load(fullfile(pwd, 'coalData.mat'));
 data.original.table = f.coalApp.tableData;
 data.original.click = f.coalApp.onClickData;
 data.original.dp = f.coalApp.dataPoints;
 data.original.gas = f.coalApp.gasMixture;
 
-onClickData = data.original.click;
-dataPoints = data.original.dp;
-gasMixture = data.original.gas;
-
+data.click = data.original.click;
+data.dp = data.original.dp;
+data.gas = data.original.gas;
 %% Create GUI
 
 fig = figure('Name','PrIMe Coal Database', ...
@@ -41,7 +40,7 @@ tableDisplay = uitable('Parent', tablePanel, ...
     'ColumnFormat',     {'logical', 'char', 'char', 'char', 'char', 'char', 'char'}, ...
     'ColumnEditable',   [true, false, false, false, false, false, false, false], ...
     'RowName',          [] , ...
-    'CellSelectionCallback', @onClick, ...
+    'CellSelectionCallback', @onClickCall, ...
     'Data',             data.original.table);
 
 % Menu Bar
@@ -65,7 +64,7 @@ plotB = uicontrol('Parent',buttonPanel, ...
     'Style',            'pushbutton', ...
     'FontSize',         10, ...
     'String',           'Plot Data', ...
-    'CallBack',         {@plotButton, tableDisplay, onClickData, dataPoints});
+    'CallBack',         {@plotCall, tableDisplay});
 
 searchBox = uicontrol('Parent',buttonPanel, ...
     'Units',            'normalized', ...
@@ -117,6 +116,15 @@ resetB =  uicontrol('Parent',buttonPanel, ...
     'CallBack',         @resetButton);
 
 %% Call Back Functions
+
+    function plotCall(h,d, Htable)
+        plotButton(h, d, Htable, data)
+    end
+
+    function onClickCall(h, d)
+        onClick(h,d,data)
+    end
+
     function filterButton(h,d, varargin)
         if ~isempty(varargin)
             if strcmp(varargin{1},'pyro') == 1
@@ -142,9 +150,6 @@ resetB =  uicontrol('Parent',buttonPanel, ...
         filtered.gas = {};
         
         data.table = tableDisplay.Data;
-        data.click = onClickData;
-        data.dp = dataPoints;
-        data.gas = gasMixture;
         
         % Menu Options
         if searchGroup == 88
@@ -191,8 +196,8 @@ resetB =  uicontrol('Parent',buttonPanel, ...
                 end
                 count = 0;
                 for i = 1:size(data.table,1)
-                    for i1 = 1:size(gasMixture{i},1)
-                        if strcmpi( strtrim(gasMixture{i}(i1,:)), searchTerm ) == 1
+                    for i1 = 1:size(data.gas{i},1)
+                        if strcmpi( strtrim(data.gas{i}(i1,:)), searchTerm ) == 1
                             count = count + 1;
                             for j = 1:size(data.table,2)
                                 filtered.table{count,j} = data.table{i,j};
@@ -216,44 +221,20 @@ resetB =  uicontrol('Parent',buttonPanel, ...
                         searchTerm);
                 end
         end
-        dataPoints = filtered.dp;
-        onClickData = filtered.click;
+        
         tableDisplay.Data = filtered.table;
-        gasMixture = filtered.gas;
+        data.table = filtered.table;
+        data.dp = filtered.dp;
+        data.click = filtered.click;
+        data.gas = filtered.gas;
         resultsFoundText.String = sprintf('Data Groups Found: %s', num2str(size(tableDisplay.Data,1)));
     end
 
-    function onClick(h, d)
-        NET.addAssembly('System.Xml');
-        if size(d.Indices,1) == 1
-            if all(d.Indices(2) ~= [1, 3, 4, 5, 6, 7])
-                % Clicking Coal Name
-                if d.Indices(2) == 2
-                    ReactionLab.Util.gate2primeData('show',{'primeId',onClickData{d.Indices(1),d.Indices(2)}});
-                    % Get DOM XML of Chemical Analysis File
-                    speciesPrimeID = onClickData{d.Indices(1),d.Indices(2)};
-                    s = strcat('species/data/',speciesPrimeID,'/ca00000001.xml');
-                    url = strcat('http://warehouse.primekinetics.org/depository/', s);
-                    rawXML = urlread(url);
-                    
-                    cleanStr = strrep(rawXML,' xmlns=""','');
-                    cleanExpDoc = System.Xml.XmlDocument;
-                    cleanExpDoc.LoadXml(cleanStr);
-                    % View DOM
-                    xv = PrimeKinetics.PrimeHandle.XmlViewer(cleanExpDoc);
-                    xv.Show();
-                else
-                    ReactionLab.Util.gate2primeData('show',{'primeId',onClickData{d.Indices(1),d.Indices(2)}});
-                end
-            end
-        end
-    end
-
     function resetButton(h,d)
-        dataPoints = data.original.dp;
-        onClickData = data.original.click;
         tableDisplay.Data = data.original.table;
-        gasMixture = data.original.gas;
+        data.dp = data.original.dp;
+        data.click = data.original.click;
+        data.gas = data.original.gas;
         resultsFoundText.String = sprintf('Data Groups Found: %s', num2str(size(tableDisplay.Data,1)));
     end
 
@@ -264,14 +245,4 @@ resetB =  uicontrol('Parent',buttonPanel, ...
         end
     end
 
-    function createTargetList(hh,dd, Htable)
-        selectedExp = {};
-        for i = 1:size(Htable.Data,1)
-            if Htable.Data{i,1} == 1
-                % issue when used with filters.
-                selectedExp{end+1} = [onClickData(i,2), onClickData(i,6), onClickData(i,8)];
-            end
-        end
-        selectedExp{:}
-    end
 end
