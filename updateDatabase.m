@@ -2,7 +2,7 @@ function updateDatabase(hh, dd, curDir)
 %% Download List of Experimental Records Dealing with Coal
 
 h = waitbar(0);
-waitbar(0,h,sprintf('Searching Warehouse for Coal Data'))
+waitbar(0,h,sprintf('Searching PrIMe Warehouse for Coal Data'))
 s = ReactionLab.Util.PrIMeData.ExperimentDepot.PrIMeExperiments;
 [coalList, ~] = s.warehouseSearch({'additionalDataItem', 'coal'});
 close(h)
@@ -21,11 +21,11 @@ for i = 1:n
         a = toc;
     end
     if i < 10
-       waitbar(0,h,sprintf('Downloading experiments from Warehouse \n 0%% complete'))
+       waitbar(0,h,sprintf('Downloading experiments from PrIMe Warehouse \n 0%% complete'))
         
     else
         p = round(i/n,3);
-        waitbar(p,h,sprintf('Downloading experiments from Warehouse \n %.1f%% complete (%.1f sec)',p*100, (n-i)*a/10))
+        waitbar(p,h,sprintf('Downloading experiments from PrIMe Warehouse \n %.1f%% complete (%.1f sec)',p*100, (n-i)*a/10))
         
     end
 end
@@ -209,24 +209,13 @@ for i = 1:n
         % Marker for files with HDF5 Files: dataPoints{}(4,:) = NaN
         if strcmpi(char(dG.Item(dList-1).GetAttribute('dataPointForm')), 'HDF5')
             for j = 1:size(dataPoints{dGCount},2)
-                dataPoints{dGCount}{4,j} = NaN;
+                dataPoints{dGCount}{4,j} = 'dataInHDF';
             end
         else
-            for numXs = 1:size(dataPoints{dGCount},2)
-                tagElements = xmlDocument.GetElementsByTagName(dataPoints{dGCount}{3,numXs});
-                for j = 1:tagElements.Count
-                    if strfind(char(tagElements.Item(j-1).InnerText), ',') ~= 0
-                        accValue = strsplit(char(tagElements.Item(j-1).InnerText), ',');
-                        dataPoints{dGCount}{j+3,numXs} = str2double(accValue);
-                    else
-                        dataPoints{dGCount}{j+3,numXs} = str2double(char(tagElements.Item(j-1).InnerText));
-                    end
-                end
+            for j = 1:size(dataPoints{dGCount},2)
+                dataPoints{dGCount}{4,j} = 'dataInXML';
             end
-            
-            
         end
-        
         if i == 10
             a = toc;
         end
