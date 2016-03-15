@@ -93,34 +93,27 @@ for i = 1:n
             done = 0;
             sLinks = xmlDocument.GetElementsByTagName('speciesLink');          
             for sList = 1:sLinks.Count
-                if sLinks.Item(sList-1).Attributes.Item(0).Value == 'O2'
-                    if isempty(sLinks.Item(sList-1).NextSibling) % if there is no amount node
-                        initialO2{dGCount} = '-';
-                        done = done + 1;
-                    else
-                        o2String = char(sLinks.Item(sList-1).NextSibling.InnerText);
-                        o2String = str2double(o2String) * 100;
-                        initialO2{dGCount} = num2str(round( o2String, 3 ));
-                        done = done + 1;
-                    end
-                end
-                if sLinks.Item(sList-1).Attributes.Item(0).Value == fuelPrefKey{dGCount}
-                    fuelPrimeID{dGCount} = char(sLinks.Item(sList-1).Attributes.Item(1).Value);
-                    done = done + 1;
-                end
-                if sLinks.Item(sList-1).Attributes.Item(0).Value == 'H2O'
-                    if isempty(sLinks.Item(sList-1).NextSibling) % if there is no amount node
-                        initialH2O{dGCount} = '-';
-                        done = done + 1;
-                    else
-                        h2oString = char(sLinks.Item(sList-1).NextSibling.InnerText);
-                        h2oString = str2double(h2oString) * 100;
-                        initialH2O{dGCount} = num2str(round( h2oString, 3));
-                        done = done + 1;
-                    end
-                end
-                if done == 3
-                    break
+                switch sLinks.Item(sList-1).GetAttribute('preferredKey')
+                    case fuelPrefKey{dGCount}
+                        fuelPrimeID{dGCount} = char(sLinks.Item(sList-1).Attributes.Item(1).Value);
+                    
+                    case 'O2'
+                        if isempty(sLinks.Item(sList-1).NextSibling) % if there is no amount node
+                            initialO2{dGCount} = '-';
+                        else
+                            o2String = char(sLinks.Item(sList-1).NextSibling.InnerText);
+                            o2String = str2double(o2String) * 100;
+                            initialO2{dGCount} = num2str(round( o2String, 3 ));
+                        end
+                        
+                    case 'H2O'
+                        if isempty(sLinks.Item(sList-1).NextSibling) % if there is no amount node
+                            initialH2O{dGCount} = '-';
+                        else
+                            h2oString = char(sLinks.Item(sList-1).NextSibling.InnerText);
+                            h2oString = str2double(h2oString) * 100;
+                            initialH2O{dGCount} = num2str(round( h2oString, 3));
+                        end
                 end
             end
             
@@ -141,21 +134,19 @@ for i = 1:n
             for cList = 1:commonProp.Count
                 prop = commonProp.Item(cList-1).GetElementsByTagName('property');
                 for pList = 1:prop.Count
-                    for aList = 1:prop.Item(pList-1).Attributes.Count
-                        if prop.Item(pList-1).Attributes.Item(aList-1).Value == 'temperature'
+                    switch char(prop.Item(pList-1).GetAttribute('name'))
+                        case 'temperature'
                             if any(strcmpi(char(prop.Item(pList-1).GetAttribute('label')), {'T_furnace' 'T_gas'}))
                                 T = str2double(char(prop.Item(pList-1).ChildNodes.Item(0).InnerXml));
                                 commonTemp{dGCount} = num2str(round( T, 1 ));
-                                c = 1;
                             end
-                        end
-                        if c == 1
-                            break
-                        end
                     end
                     if c == 1
                         break
                     end
+                end
+                if c == 1
+                    break
                 end
             end
             if isempty(commonTemp{dGCount}) == 1
@@ -188,7 +179,6 @@ for i = 1:n
             expPrimeID{dGCount} = expPrimeID{dGCount-1};
             fuelRank{dGCount} = fuelRank{dGCount-1};
         end
-        
         
         % Pull Data Node Information 
         prop = dG.Item(dList-1).GetElementsByTagName('property');

@@ -121,11 +121,7 @@ else
             delete(localH5)
         elseif all(strcmpi([dataTable{i}(4,:)], 'dataInXML'))
             % Download XML 
-            link = ['http://warehouse.primekinetics.org/depository/experiments/catalog/' ...
-                ids{i}{1}, '.xml'];
-            downString = webread(link);
-            expDoc = System.Xml.XmlDocument;
-            expDoc.LoadXml(downString);
+            expDoc = ReactionLab.Util.gate2primeData('getDOM',{'primeID',ids{i}{1}});
             dgGroups = expDoc.GetElementsByTagName('dataGroup');
             for dgC = 1:dgGroups.Count
                 if strcmpi(char(dgGroups.Item(dgC-1).GetAttribute('id')), ids{i}{2})
