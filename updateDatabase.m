@@ -21,7 +21,7 @@ for i = 1:n
         a = toc;
     end
     if i < 10
-       waitbar(0,h,sprintf('Downloading experiments from PrIMe Warehouse \n 0%% complete'))
+        waitbar(0,h,sprintf('Downloading experiments from PrIMe Warehouse \n 0%% complete'))
         
     else
         p = round(i/n,3);
@@ -88,31 +88,31 @@ for i = 1:n
             
             fuelPrefKey{dGCount} = coalData(i).Fuel;
             expPrimeID{dGCount} = coalData(i).PrimeId;
-                
+            
             % Get O2 Volume Fraction from XML
             done = 0;
-            sLinks = xmlDocument.GetElementsByTagName('speciesLink');          
+            sLinks = xmlDocument.GetElementsByTagName('speciesLink');
             for sList = 1:sLinks.Count
                 switch sLinks.Item(sList-1).GetAttribute('preferredKey')
                     case fuelPrefKey{dGCount}
                         fuelPrimeID{dGCount} = char(sLinks.Item(sList-1).Attributes.Item(1).Value);
-                    
+                        
                     case 'O2'
-                        if isempty(sLinks.Item(sList-1).NextSibling) % if there is no amount node
-                            initialO2{dGCount} = '-';
-                        else
-                            o2String = char(sLinks.Item(sList-1).NextSibling.InnerText);
-                            o2String = str2double(o2String) * 100;
-                            initialO2{dGCount} = num2str(round( o2String, 3 ));
+                        if sLinks.Item(sList-1).ParentNode.GetElementsByTagName('amount').Count ~= 0
+                            amountNode = sLinks.Item(sList-1).ParentNode.GetElementsByTagName('amount').Item(0);
+                            o2Units = char(amountNode.GetAttribute('units'));
+                            o2Value = str2double(char(amountNode.InnerText));
+                            o2Value = ReactionLab.Units.units2units(o2Value, o2Units, 'mole fraction') * 100;
+                            initialO2{dGCount} = num2str(round( o2Value, 3 ));
                         end
                         
                     case 'H2O'
-                        if isempty(sLinks.Item(sList-1).NextSibling) % if there is no amount node
-                            initialH2O{dGCount} = '-';
-                        else
-                            h2oString = char(sLinks.Item(sList-1).NextSibling.InnerText);
-                            h2oString = str2double(h2oString) * 100;
-                            initialH2O{dGCount} = num2str(round( h2oString, 3));
+                        if sLinks.Item(sList-1).ParentNode.GetElementsByTagName('amount').Count ~= 0
+                            amountNode = sLinks.Item(sList-1).ParentNode.GetElementsByTagName('amount').Item(0);
+                            h2oUnits = char(amountNode.GetAttribute('units'));
+                            h2oValue = str2double(char(amountNode.InnerText));
+                            h2oValue = ReactionLab.Units.units2units(h2oValue, h2oUnits, 'mole fraction') * 100;
+                            initialH2O{dGCount} = num2str(round( h2oValue, 3 ));
                         end
                 end
             end
@@ -137,8 +137,11 @@ for i = 1:n
                     switch char(prop.Item(pList-1).GetAttribute('name'))
                         case 'temperature'
                             if any(strcmpi(char(prop.Item(pList-1).GetAttribute('label')), {'T_furnace' 'T_gas'}))
-                                T = str2double(char(prop.Item(pList-1).ChildNodes.Item(0).InnerXml));
-                                commonTemp{dGCount} = num2str(round( T, 1 ));
+                                tUnits = char(prop.Item(pList-1).GetAttribute('units'));
+                                valueNode = prop.Item(pList-1).GetElementsByTagName('value').Item(0);
+                                tValue = str2double(char(valueNode.InnerXml));
+                                tValue = ReactionLab.Units.units2units(tValue, tUnits, 'K');
+                                commonTemp{dGCount} = num2str(round(tValue, 1 ));
                             end
                     end
                     if c == 1
@@ -149,7 +152,14 @@ for i = 1:n
                     break
                 end
             end
-            if isempty(commonTemp{dGCount}) == 1
+            
+            if isempty(initialO2)
+                initialO2{dGCount} = '-';
+            end
+            if isempty(initialH2O)
+                initialH2O{dGCount} = '-';
+            end
+            if isempty(commonTemp{dGCount})
                 commonTemp{dGCount} = '-';
             end
             
@@ -180,7 +190,7 @@ for i = 1:n
             fuelRank{dGCount} = fuelRank{dGCount-1};
         end
         
-        % Pull Data Node Information 
+        % Pull Data Node Information
         prop = dG.Item(dList-1).GetElementsByTagName('property');
         for pList = 1:prop.Count
             propDescription = char(prop.Item(pList-1).GetAttribute('description'));
@@ -207,7 +217,7 @@ for i = 1:n
     end
     if i < 10
         waitbar(0,h,sprintf('Processing Data \n 0%% complete'))
-    else 
+    else
         p = round(i/n,3);
         waitbar(p,h,sprintf('Processing Data \n %.1f%% complete (%.1f sec)',p*100, (n-i)*a/10))
     end
@@ -231,7 +241,7 @@ for i = 1:length(gasMixture)
 end
 
 formattedFuelRank = cell(1,dGCount);
-% create strings for Fuel Rank to display 
+% create strings for Fuel Rank to display
 for i = 1:length(fuelRank)
     for i1 = 1:size(fuelRank{i},2)
         if i1 < size(fuelRank{i},2)
