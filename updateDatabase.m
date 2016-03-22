@@ -89,9 +89,9 @@ for i = 1:n
             fuelPrefKey{dGCount} = coalData(i).Fuel;
             expPrimeID{dGCount} = coalData(i).PrimeId;
             
-            % Get O2 Volume Fraction from XML
-            done = 0;
-            sLinks = xmlDocument.GetElementsByTagName('speciesLink');
+            % Get Volume Fraction
+            commonProp = xmlDocument.GetElementsByTagName('commonProperties');
+            sLinks = commonProp.Item(0).GetElementsByTagName('speciesLink');
             for sList = 1:sLinks.Count
                 switch sLinks.Item(sList-1).GetAttribute('preferredKey')
                     case fuelPrefKey{dGCount}
@@ -117,6 +117,20 @@ for i = 1:n
                 end
             end
             
+            % Gas mixtures
+            gasNodes = ReactionLab.Util.getnode(xmlDocument,'property','name','initial composition');
+            compNodes = gasNodes.GetElementsByTagName('component');
+            for i1 = 1:double(compNodes.Count)
+                item = compNodes.Item(i1-1);
+                pKey = char(item.GetElementsByTagName('speciesLink').Item(0).GetAttribute('preferredKey'));
+                if any(strcmpi(pKey,{'Ar' 'N2' 'O2' 'He' 'CO2' 'CO' 'H2O'})) && str2double(char(item.InnerText)) ~= 0
+                    if size(pKey,2) == 2
+                        pKey = [pKey, ' '];
+                    end
+                    gasMixture{dGCount} = [ gasMixture{dGCount}; pKey];
+                end
+            end
+            
             % Get Coal Rank Information
             t = {};
             speDoc = ReactionLab.Util.PrIMeData.SpeciesDepot.PrIMeSpecies(fuelPrimeID{dGCount});
@@ -130,7 +144,6 @@ for i = 1:n
             
             % Get Common Temperature
             c = 0;
-            commonProp = xmlDocument.GetElementsByTagName('commonProperties');
             for cList = 1:commonProp.Count
                 prop = commonProp.Item(cList-1).GetElementsByTagName('property');
                 for pList = 1:prop.Count
@@ -163,19 +176,6 @@ for i = 1:n
                 commonTemp{dGCount} = '-';
             end
             
-            % Gas mixtures
-            gasNodes = ReactionLab.Util.getnode(xmlDocument,'property','name','initial composition');
-            compNodes = gasNodes.GetElementsByTagName('component');
-            for i1 = 1:double(compNodes.Count)
-                item = compNodes.Item(i1-1);
-                pKey = char(item.GetElementsByTagName('speciesLink').Item(0).GetAttribute('preferredKey'));
-                if any(strcmpi(pKey,{'Ar' 'N2' 'O2' 'He' 'CO2' 'CO' 'H2O'})) && str2double(char(item.InnerText)) ~= 0
-                    if size(pKey,2) == 2
-                        pKey = [pKey, ' '];
-                    end
-                    gasMixture{dGCount} = [ gasMixture{dGCount}; pKey];
-                end
-            end
         else
             % Copy if Repeat
             bibPrimeID{dGCount} = bibPrimeID{dGCount-1};
