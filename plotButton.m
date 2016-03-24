@@ -108,15 +108,16 @@ else
                 dataTable{i}(4,:) = [];
                 dataTable{i} = [dataTable{i}; num2cell(data')];
             catch
+                d = {};
                 for j = 1:size(dataTable{i},2)
                     h5s = hdf5read(localH5, strcat(ids{i}{2}, '/', dataTable{i}{3,j}));
                     for j1 = 1:length(h5s)
                         temp = strsplit(h5s(j1).Data, ','); 
-                        data{j1,j} = str2double(temp{1});
+                        d{j1,j} = str2double(temp{1});
                     end 
                 end
                 dataTable{i}(4,:) = [];
-                dataTable{i} = [dataTable{i}; data];
+                dataTable{i} = [dataTable{i}; d];
             end
             delete(localH5)
         elseif all(strcmpi([dataTable{i}(4,:)], 'dataInXML'))
