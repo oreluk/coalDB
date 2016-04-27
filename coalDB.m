@@ -36,7 +36,9 @@ tableDisplay = uitable('Parent', tablePanel, ...
     'Units', 'normalized',...
     'Position',         [0 0 1 0.8], ...
     'ColumnWidth',      {50 200 75 50 50 100 60 270 200}, ...
-    'ColumnName',       {'Select', 'Coal Name',  'Coal Rank', '% O2', '% H2O', 'Gas Mixture', 'Temp [K]', 'Properties', 'Ref'}, ...
+    'ColumnName',       {'Select', 'Coal Name',  'Coal Rank', '% O2', ...
+                            '% H2O', 'Gas Mixture', 'Temp [K]', ...
+                            'Properties', 'Ref'}, ...
     'ColumnFormat',     {'logical', 'char', 'char', 'char', 'char', 'char', 'char'}, ...
     'ColumnEditable',   [true, false, false, false, false, false, false, false], ...
     'RowName',          [] , ...
@@ -97,7 +99,8 @@ filterByMenu = uicontrol('Parent',buttonPanel, ...
     'Style',            'popup', ...
     'HorizontalAlignment', 'left', ...
     'FontSize',         10, ...
-    'String',           {'Coal Name', 'Coal Rank', '%O2 (Greater Than Value)', '%H2O (Greater Than Value)', 'Gas Mixture', 'Temperature (Greater Than Value)'});
+    'String',           {'Coal Name', 'Coal Rank', '%O2 (Greater Than Value)', ...
+    '%H2O (Greater Than Value)', 'Gas Mixture', 'Temperature (Greater Than Value)'});
 
 filterB = uicontrol('Parent',buttonPanel,...
     'Units',            'normalized', ...
@@ -156,70 +159,70 @@ resetB =  uicontrol('Parent',buttonPanel, ...
             filtered = filterSub( data, 'str2double(data.table(i,4)) == 0', [] );
         elseif searchGroup == 55
             filtered = filterSub(data, 'str2double(data.table(i,4)) > 0', [] );
-        end
-        
-        %% Search Menu Cases
-        switch filterByMenu.String{filterByMenu.Value}
-            case 'Coal Name'
-                filtered = filterSub( data, ...
-                    'strfind( lower(data.table{i,2}), strtrim(lower(searchTerm)) ) >= 1', ...
-                    searchTerm);
-                
-            case 'Coal Rank'
-                filtered = filterSub( data, ...
-                    'strfind( lower(data.table{i,3}), strtrim(lower(searchTerm)) ) >= 1', ...
-                    searchTerm);
-                
-            case '%O2 (Greater Than Value)'
-                filtered = filterSub( data, ...
-                    'str2double(data.table(i,4)) >= str2double(strtrim(searchTerm))', ...
-                    searchTerm);
-                
-            case '%H2O (Greater Than Value)'
-                filtered = filterSub( data, ...
-                    'str2double(data.table(i,5)) >= str2double(strtrim(searchTerm))', ...
-                    searchTerm);
-                
-            case 'Gas Mixture',
-                searchTerm = strtrim(lower(searchTerm));
-                switch searchTerm
-                    case 'nitrogen'
-                        searchTerm = 'n2';
-                    case 'helium'
-                        searchTerm = 'he';
-                    case 'argon'
-                        searchTerm = 'ar';
-                    case 'oxygen'
-                        searchTerm = 'o2';
-                    case 'water'
-                        searchTerm = 'h2o';
-                end
-                count = 0;
-                for i = 1:size(data.table,1)
-                    for i1 = 1:size(data.gas{i},1)
-                        if strcmpi( strtrim(data.gas{i}(i1,:)), searchTerm ) == 1
-                            count = count + 1;
-                            for j = 1:size(data.table,2)
-                                filtered.table{count,j} = data.table{i,j};
-                                filtered.click{count,j} = data.click{i,j};
-                                filtered.dp{count} = data.dp{1,i};
-                                filtered.gas{count} = data.gas{1,i};
+        else
+            %% Search Menu Cases
+            switch filterByMenu.String{filterByMenu.Value}
+                case 'Coal Name'
+                    filtered = filterSub( data, ...
+                        'strfind( lower(data.table{i,2}), strtrim(lower(searchTerm)) ) >= 1', ...
+                        searchTerm);
+                    
+                case 'Coal Rank'
+                    filtered = filterSub( data, ...
+                        'strfind( lower(data.table{i,3}), strtrim(lower(searchTerm)) ) >= 1', ...
+                        searchTerm);
+                    
+                case '%O2 (Greater Than Value)'
+                    filtered = filterSub( data, ...
+                        'str2double(data.table(i,4)) >= str2double(strtrim(searchTerm))', ...
+                        searchTerm);
+                    
+                case '%H2O (Greater Than Value)'
+                    filtered = filterSub( data, ...
+                        'str2double(data.table(i,5)) >= str2double(strtrim(searchTerm))', ...
+                        searchTerm);
+                    
+                case 'Gas Mixture',
+                    searchTerm = strtrim(lower(searchTerm));
+                    switch searchTerm
+                        case 'nitrogen'
+                            searchTerm = 'n2';
+                        case 'helium'
+                            searchTerm = 'he';
+                        case 'argon'
+                            searchTerm = 'ar';
+                        case 'oxygen'
+                            searchTerm = 'o2';
+                        case 'water'
+                            searchTerm = 'h2o';
+                    end
+                    count = 0;
+                    for i = 1:size(data.table,1)
+                        for i1 = 1:size(data.gas{i},1)
+                            if strcmpi( strtrim(data.gas{i}(i1,:)), searchTerm ) == 1
+                                count = count + 1;
+                                for j = 1:size(data.table,2)
+                                    filtered.table{count,j} = data.table{i,j};
+                                    filtered.click{count,j} = data.click{i,j};
+                                    filtered.dp{count} = data.dp{1,i};
+                                    filtered.gas{count} = data.gas{1,i};
+                                end
                             end
                         end
                     end
-                end
-                
-            case 'Temperature (Greater Than Value)'
-                searchTerm = str2double(strsplit(searchTerm,':'));
-                if size(searchTerm,2) == 1
-                    filtered = filterSub( data, ...
-                        'str2double(data.table(i,6)) >= searchTerm', ...
-                        searchTerm);
-                else
-                    filtered = filterSub( data, ...
-                        'str2double(data.table(i,6)) >= searchTerm(1) && str2double(data.table(i,5)) <= searchTerm(2)', ...
-                        searchTerm);
-                end
+                    
+                case 'Temperature (Greater Than Value)'
+                    searchTerm = str2double(strsplit(searchTerm,':'));
+                    if size(searchTerm,2) == 1
+                        filtered = filterSub( data, ...
+                            'str2double(data.table(i,7)) >= searchTerm', ...
+                            searchTerm);
+                    else
+                        filtered = filterSub( data, ...
+                            'str2double(data.table(i,7)) >= searchTerm(1) && str2double(data.table(i,7)) <= searchTerm(2)', ...
+                            searchTerm);
+                    end
+            end
         end
         
         tableDisplay.Data = filtered.table;
