@@ -206,6 +206,9 @@ resetB =  uicontrol('Parent',buttonPanel, ...
                                     filtered.click{count,j} = data.click{i,j};
                                     filtered.dp{count} = data.dp{1,i};
                                     filtered.gas{count} = data.gas{1,i};
+                                    if j == size(data.table,2)
+                                        filtered.click{count,j+1} = data.click{i,j+1};
+                                    end
                                 end
                             end
                         end
