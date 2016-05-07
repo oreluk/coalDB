@@ -12,7 +12,7 @@ if count == 0
     errordlg('Requires at least one experiment selected to plot Show Data')
 else
     % Figure and Tabs
-    plotFig = figure('Name','PrIMe Coal Database - Plot Data', ...
+    plotFig = figure('Name','CCMSC Coal Database - Plot Data', ...
         'Position',     [150 200 750 500], ...
         'MenuBar',      'none', ...
         'NumberTitle',  'off', ...
@@ -236,7 +236,8 @@ end
             % Plot Values
             if c == 2  % Both xValues && yValues matched
                 if showLine.Value == 1
-                    plot(ax, xValues(:,1), yValues(:,1), 'o-')
+                    plot(ax, xValues(:,1), yValues(:,1), 'o-', 'LineWidth', 1.5)
+                    
                 else
                     plot(ax, xValues(:,1), yValues(:,1), 'o')
                 end
