@@ -141,6 +141,17 @@ for i = 1:n
                 end
             end
             fuelRank{dGCount} = t;
+
+            % Build Coal Property Table
+            % this currently doesn't work...we need to only "pull" the first one
+            caDoc = ReactionLab.Util.PrIMeData.SpeciesDepot.PrIMeSpecies(fuelPrimeID{dGCount});
+            
+            % we want to first pull the xml document for the CA document
+
+            % for each node get the interesting information out. 
+            % build table where all columns are in sync.....
+
+
             
             % Get Common Temperature
             c = 0;

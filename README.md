@@ -1,10 +1,10 @@
 # coalDB
 
-coalDB is a stand-alone application to the CCMSC Coal Database.
+coalDB is a stand-alone MATLAB based application to the CCMSC Coal Database.
 
 ## Motivation
 
-Ease of access to the CCMSC Coal Database. Allows users to discover, visualize and extract coal data. This application acts as a front-end to the data collected by the CCMSC.
+This application acts as a front-end to the cloud-database hosted by PrIMe(primekinetics.org). The CCMSC Coal Database is a crowd-sourced database composed of coal experiments from the literature. This application provides ease of access to the CCMSC Coal Database by allowing users to discover, visualize and extract data on coal data.
 
 ## Requirements
 
@@ -12,10 +12,8 @@ Ease of access to the CCMSC Coal Database. Allows users to discover, visualize a
 
 ## Future Changes
 
-* Introduction to submission -- Include tutorials within the application 
+* Add Introduction to submission -- Add more documentation to the tutorials, to make contributions and uploading coal data as easy as possible 
 
 ## License
 
-Copyright 2016, Jim Oreluk. 
-
-Licensed under the [Apache License](LICENSE.md)
+Licensed under the [GNU Affero General Public License (AGPL)](LICENSE)
