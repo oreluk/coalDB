@@ -1,5 +1,6 @@
 function updateDatabase(hh, dd, curDir)
 %% Download List of Experimental Records Dealing with Coal
+NET.addAssembly(which('+ReactionLab\+Util\PrimeWebDavClient.dll'));
 conn = PrimeKinetics.PrimeHandle.PrimeConnection('','');
 
 h = waitbar(0);
@@ -145,19 +146,17 @@ for i = 1:n
             fuelRank{dGCount} = t;
             
             % Build Coal Property Table
-            if isempty(caTable) || isempty(strfind(caTable(:,1), fuelPrimeID{dGCount})) 
+            if isempty(caTable) || isempty(strfind([caTable{:,1}], fuelPrimeID{dGCount})) 
                 caTable{end+1,1} = fuelPrimeID{dGCount};
                 caDoc = conn.Load(['/depository/species/data/' fuelPrimeID{dGCount} '/' 'ca00000001.xml']);
                 caDoc = caDoc.result;
                 caProp = caDoc.GetElementsByTagName('property');
                 for caP = 1:caProp.Count
                     % build table where all columns are in sync.....
-                    if strcmpi(char(caProp.Item(caP-1).GetAttribute('label')), 'C_ar')
-                        caTable{end, 2} = caProp.Item(caP-1).GetElementsByTagName('value').Item(0);
-                    elseif strcmpi(char(caProp.Item(caP-1).GetAttribute('label')), 'C_dry')
-                        caTable{end, 3} = caProp.Item(caP-1).GetElementsByTagName('value').Item(0);
-                    elseif strcmpi(char(caProp.Item(caP-1).GetAttribute('label')), 'C_daf')
-                        caTable{end, 4} = caProp.Item(caP-1).GetElementsByTagName('value').Item(0);
+                    if strcmpi(char(caProp.Item(caP-1).GetAttribute('label')), 'C_dry') || ... 
+                            (strcmpi(char(caProp.Item(caP-1).GetAttribute('label')), 'C') ...
+                            && strcmpi(char(caProp.Item(caP-1).GetAttribute('kind')), 'daf'))
+                        caTable{end, 2} = str2double(char(caProp.Item(caP-1).GetElementsByTagName('value').Item(0).InnerText));
                     end
                 end
             end
