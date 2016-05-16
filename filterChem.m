@@ -1,11 +1,12 @@
-function filtered = filterChem(data, query, query2, value)
+function filtered = filterChem(data, query, value)
 
 
 count = 0;
+value = str2double(value)/100;  %input is \%  These are stored as decimal values. 
 for i = 1:size(data.click,1)
-    if eval(query)
-        index = strfind([data.caTable{:,1}], data.click(i,2));
-        if eval(query2)
+    if  ~isempty(strfind([data.caTable{:,1}], data.click(i,2)))
+        index = find(strcmpi(data.caTable(:,1), data.click(i,2)));
+        if eval(query)   % 'data.caTable{index,2} >= value'  Carbon_DAF
             count = count + 1;
             for j = 1:size(data.table,2)
                 filtered.table{count,j} = data.table{i,j};
