@@ -1,5 +1,7 @@
 function updateDatabase(hh, dd, curDir)
 %% Download List of Experimental Records Dealing with Coal
+NET.addAssembly(which('+ReactionLab\+Util\PrimeWebDavClient.dll'));
+conn = PrimeKinetics.PrimeHandle.PrimeConnection('','');
 
 h = waitbar(0);
 waitbar(0,h,sprintf('Searching PrIMe Warehouse for Coal Data'))
@@ -52,6 +54,7 @@ gasMixture  = cell(1,dGCount);
 expPrimeID = cell(1,dGCount);
 dataGroupID = cell(1,dGCount);
 fuelRank = cell(1,dGCount);
+caTable = {};
 
 %% Process Data
 dGCount = 0;
@@ -141,17 +144,22 @@ for i = 1:n
                 end
             end
             fuelRank{dGCount} = t;
-
-            % Build Coal Property Table
-            % this currently doesn't work...we need to only "pull" the first one
-            caDoc = ReactionLab.Util.PrIMeData.SpeciesDepot.PrIMeSpecies(fuelPrimeID{dGCount});
             
-            % we want to first pull the xml document for the CA document
-
-            % for each node get the interesting information out. 
-            % build table where all columns are in sync.....
-
-
+            % Build Coal Property Table
+            if isempty(caTable) || isempty(strfind([caTable{:,1}], fuelPrimeID{dGCount})) 
+                caTable{end+1,1} = fuelPrimeID{dGCount};
+                caDoc = conn.Load(['/depository/species/data/' fuelPrimeID{dGCount} '/' 'ca00000001.xml']);
+                caDoc = caDoc.result;
+                caProp = caDoc.GetElementsByTagName('property');
+                for caP = 1:caProp.Count
+                    % build table where all columns are in sync.....
+                    if strcmpi(char(caProp.Item(caP-1).GetAttribute('label')), 'C_dry') || ... 
+                            (strcmpi(char(caProp.Item(caP-1).GetAttribute('label')), 'C') ...
+                            && strcmpi(char(caProp.Item(caP-1).GetAttribute('kind')), 'daf'))
+                        caTable{end, 2} = str2double(char(caProp.Item(caP-1).GetElementsByTagName('value').Item(0).InnerText));
+                    end
+                end
+            end
             
             % Get Common Temperature
             c = 0;
@@ -275,6 +283,7 @@ coalApp.onClickData = onClickData;
 coalApp.dataPoints = dataPoints;
 coalApp.gasMixture = gasMixture;
 coalApp.fuelRank = fuelRank;
+coalApp.caTable = caTable;
 
 %%
 
