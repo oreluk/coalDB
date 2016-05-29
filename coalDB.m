@@ -137,9 +137,8 @@ resetB =  uicontrol('Parent',buttonPanel, ...
     end
 
     function exportCall(h,d, Htable)
-        s = exportButton(h, d, Htable, data)
+        s = exportButton(h, d, Htable, data);
     end
-
 
     function onClickCall(h, d)
         onClick(h,d,data)

@@ -1,5 +1,9 @@
 function expData = exportButton(hh, dd, Htable, data)
-struct expData
+% Collects relevant data from any database entry into a struct expData. 
+%  This struct then can be used to initialize simulations at the
+%  desired initial conditions and used to report the nominal QOI value 
+%  and its respective bounds.
+
 count = 0;
 for i = 1:size(Htable.Data,1)
     if Htable.Data{i,1} == 1
@@ -22,7 +26,13 @@ for i = 1:size(Htable.Data,1)
     end
 end
 
-% get pertinent data. 
-keyboard
+%% Gathers xs data  
+%expData.xs.Tp = 
+%expData.xs
+
+
+%% Save to Workspace
+assignin('base','expData',expData) 
+fprintf('The entry has been saved to the workspace as expData.')
 
 end
