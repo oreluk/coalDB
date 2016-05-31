@@ -94,7 +94,7 @@ else
         'String',       'Display Line', ...
         'CallBack',         @setPlot);
   
-    dataTable = getData(h, d, dataTable, ids);
+    dataTable = getDatapoints(h, d, dataTable, ids);
     
     [xUnits, yUnits] = setPlot;
     grid(ax, 'on')

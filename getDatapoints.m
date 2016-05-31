@@ -1,14 +1,15 @@
-function dataTable = getData(h, d, dataTable, ids)
-%  getData will gather Data from PrIMe Warehouse and return a cell array 
-%  of dataPoints for the experiment and datagroup queried.
+function dataTable = getDatapoints(h, d, dataTable, ids)
+%  getData will gather dataPoints from PrIMe Warehouse and return a cell 
+%  array for the experiment and datagroup queried.
 %
 % Jim Oreluk 2016.05.29
 %
 % dataTable: {'Property Name'; 'units'; 'propertyID'; 'location'}
 %  where location is 'dataInXml' || 'dataInHDF'. 
 %
-%  ids: {'experiment PrIMe ID' 'dataGroup ID'};
-%  property 
+%  ids: a n-by-1 cell array of {'experiment PrIMe ID' 'dataGroup ID'} cells. 
+% where n is the number of selected datagroups.
+%
 
 h = waitbar(0);
 waitbar(0,h,sprintf('Downloading Data From PrIMe Warehouse'))
