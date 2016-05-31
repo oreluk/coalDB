@@ -14,7 +14,9 @@ for i = 1:size(Htable.Data,1)
     end
 end
 
-if count ~= 1
+if count == 0 
+    errordlg('Please select an experiment for export.')
+elseif count ~= 1
     errordlg('Only a single experiment can be selected for export.')
 end
 
@@ -42,6 +44,6 @@ expData = parseExp(hh, dd, expData, dataTable, ids);
 
 %% Save to Workspace
 assignin('base','expData',expData) 
-fprintf('The entry has been saved to the workspace as expData.')
+fprintf('The dataGroup selected has been exported to the workspace as expData. \n')
 
 end
