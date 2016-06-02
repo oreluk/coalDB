@@ -1,6 +1,10 @@
 function expData = parseExp(hh, dd, expData, dataTable, ids)
-% Parses out the initial conditions and datapoints from a particular
-% experiment.
+% Parses out the initial conditions (xs), datapoints (data) and its 
+%  reported uncertainty (uncertainty) from a particular experiment (ids).
+%  This information is stored inside the structure named expData. 
+%
+% Jim Oreluk 2016.05.30
+%
 
 %% Download Experiment Document
 expDoc = ReactionLab.Util.gate2primeData('getDOM',{'primeID',expData.id.expID});
@@ -8,7 +12,7 @@ expDoc = ReactionLab.Util.gate2primeData('getDOM',{'primeID',expData.id.expID});
 %% Get Data Points from Selected Experiment
 [dataTable, uncertainty] = getDatapoints(hh, dd, dataTable, ids);
 expData.data = dataTable{1};
-expData.uncertainty = uncertainty{1};
+expData.uncertainty = uncertainty{1};  % uncertainty is reported as absolute error. 0 indicates no uncertainty is stored
 
 %% Download inital conditions
 commonProp = expDoc.GetElementsByTagName('commonProperties').Item(0).GetElementsByTagName('property');

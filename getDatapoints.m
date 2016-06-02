@@ -27,15 +27,20 @@ for i = 1:size(dataTable,2)
         catch  % dataPoint is [value,uncertainty]
             d = {};
             u = {};
+            expDoc = ReactionLab.Util.gate2primeData('getDOM',{'primeID',ids{i}{1}});
             for j = 1:size(dataTable{i},2)
                 h5s = hdf5read(localH5, strcat(ids{i}{2}, '/', dataTable{i}{3,j}));
                 for j1 = 1:length(h5s)
                     temp = strsplit(h5s(j1).Data, ',');
                     d{j1,j} = str2double(temp{1});
                     if length(temp) > 1
-                        u{j1,j} = str2double(temp{2});
+                        % Get absolute uncertainty bound (providing uncVal)
+                        [absUncVal, uncKind] = getUncertainty(expDoc, ids{i}{2}, dataTable{i}{3,j}, d{j1,j}, str2double(temp{2}));
+                        u{j1,j} = absUncVal;
                     else
-                        u{j1,j} = 0;
+                        % No uncVal (no comma deliminator)
+                        [absUncVal, uncKind] = getUncertainty(expDoc, ids{i}{2}, dataTable{i}{3,j}, d{j1,j});
+                        u{j1,j} = absUncVal;
                     end
                 end
             end
@@ -58,16 +63,17 @@ for i = 1:size(dataTable,2)
                             temp = strsplit(char(tagElements.Item(j-1).InnerText), ',');
                             dataTable{i}{j+3,numXs} = str2double(temp{1});
                             if length(temp) > 1
-                                uncertainty{i}{j+3,numXs} = str2double(temp{2});
+                                [absUncVal, uncKind] = getUncertainty(expDoc, ids{i}{2}, dataTable{i}{3,numXs}, str2double(temp{1}), str2double(temp{2}));
+                                uncertainty{i}{j+3,numXs} = absUncVal;
                             else
-                                uncertainty{i}{j+3,numXs} = 0;
+                                [absUncVal, uncKind] = getUncertainty(expDoc, ids{i}{2}, dataTable{i}{3,numXs}, str2double(temp{1}));
+                                uncertainty{i}{j+3,numXs} = absUncVal;
                             end
                         else
                             dataTable{i}{j+3,numXs} = str2double(char(tagElements.Item(j-1).InnerText));
-                            uncertainty{i}{j+3,numXs} = 0;  % change to function (check property id tag for uncertainty information then use that)
-                            % need to still add proper checking of ","
-                            % delimitated for relative/vs absolute.
                             
+                            [absUncVal, uncKind] = getUncertainty(expDoc, ids{i}{2}, dataTable{i}{3,numXs}, str2double(char(tagElements.Item(j-1).InnerText)));
+                            uncertainty{i}{j+3,numXs} = absUncVal;
                         end
                     end
                 end
@@ -79,4 +85,43 @@ for i = 1:size(dataTable,2)
     waitbar(p,h,sprintf('Downloading Data From PrIMe Warehouse %.1f%% ', p*100))
 end
 close(h)
+
+end
+
+function [absUncertainty, kind] = getUncertainty(expDoc, dgID, propID, dataPoint, uncVal)
+% Find kind of uncertainty (absolute/relative) for a given experimental
+%  document (expDoc), datagroup id(dgID), property id(propID).  Using data
+%  from (dataPoint) and uncertainty from (uncVal), this function will
+%  return the absolute uncertainty bound (absUncertainty).
+
+dgNodes = expDoc.GetElementsByTagName('dataGroup');
+for dgC = 1:dgNodes.Count
+    if strcmpi(char(dgNodes.Item(dgC-1).GetAttributeNode('id').Value), dgID)
+        propNodes = dgNodes.Item(dgC-1).GetElementsByTagName('property');
+        for pNC = 1:propNodes.Count
+            if strcmpi(char(propNodes.Item(pNC-1).GetAttributeNode('id').Value), propID)
+                uqNode = propNodes.Item(pNC-1).GetElementsByTagName('uncertainty');
+                if uqNode.Count > 0
+                    kind = char(uqNode.Item(0).GetAttributeNode('kind').Value);
+                    if nargin < 5 % uncValue is not known yet
+                        uncVal = char(uqNode.Item(0).InnerText);
+                    end
+                else
+                    kind = 0; % No Uncertainty Node Present
+                end
+            end
+        end
+    end
+end
+
+switch lower(kind)
+    case 'absolute'
+        absUncertainty = uncVal;
+    case 'relative'
+        absUncertainty = (uncVal * dataPoint); % convert from relative to absolute
+    case 0
+        absUncertainty = 0; % no uncertainty node present
+end
+
+end
 
