@@ -43,12 +43,16 @@ for i = 1:commonProp.Count
                 end
             end
             
-        case 'temperature'
+        case 'temperature'  % Temperature in Kelvin
             if any(strcmpi(char(commonProp.Item(i-1).GetAttributeNode('label').Value), {'T_furnace' 'T_gas'}))
-                expData.xs.T = str2double(char(commonProp.Item(i-1).GetElementsByTagName('value').Item(0).InnerText));
+                tValue = str2double(char(commonProp.Item(i-1).GetElementsByTagName('value').Item(0).InnerText));
+                tUnits = char(commonProp.Item(i-1).GetAttributeNode('units').Value);
+                expData.xs.T = ReactionLab.Units.units2units(tValue, tUnits, 'K');
             end
-        case 'pressure'
-            expData.xs.P = str2double(char(commonProp.Item(i-1).GetElementsByTagName('value').Item(0).InnerText));
+        case 'pressure' % Pressure in atm
+            pValue = str2double(char(commonProp.Item(i-1).GetElementsByTagName('value').Item(0).InnerText));
+            pUnits = char(commonProp.Item(i-1).GetAttributeNode('units').Value);
+            expData.xs.P = ReactionLab.Units.units2units(pValue, pUnits, 'atm');
     end
 end
 
