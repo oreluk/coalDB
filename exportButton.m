@@ -38,9 +38,9 @@ expData = parseExp(hh, dd, expData, dataTable, ids);
 % plot data and select QOI from data points returned
 
 
-%% keep or change bounds
+%% Modify QOI bounds
+%if bounds are present, report those for possible modification
 
-%if bounds are present, report those. allow modification
 
 %% Save to Workspace
 assignin('base','expData',expData) 

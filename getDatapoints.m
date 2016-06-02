@@ -62,16 +62,10 @@ for i = 1:size(dataTable,2)
                         if strfind(char(tagElements.Item(j-1).InnerText), ',') ~= 0
                             temp = strsplit(char(tagElements.Item(j-1).InnerText), ',');
                             dataTable{i}{j+3,numXs} = str2double(temp{1});
-                            if length(temp) > 1
-                                [absUncVal, uncKind] = getUncertainty(expDoc, ids{i}{2}, dataTable{i}{3,numXs}, str2double(temp{1}), str2double(temp{2}));
-                                uncertainty{i}{j+3,numXs} = absUncVal;
-                            else
-                                [absUncVal, uncKind] = getUncertainty(expDoc, ids{i}{2}, dataTable{i}{3,numXs}, str2double(temp{1}));
-                                uncertainty{i}{j+3,numXs} = absUncVal;
-                            end
+                            [absUncVal, uncKind] = getUncertainty(expDoc, ids{i}{2}, dataTable{i}{3,numXs}, str2double(temp{1}), str2double(temp{2}));
+                            uncertainty{i}{j+3,numXs} = absUncVal;
                         else
                             dataTable{i}{j+3,numXs} = str2double(char(tagElements.Item(j-1).InnerText));
-                            
                             [absUncVal, uncKind] = getUncertainty(expDoc, ids{i}{2}, dataTable{i}{3,numXs}, str2double(char(tagElements.Item(j-1).InnerText)));
                             uncertainty{i}{j+3,numXs} = absUncVal;
                         end
@@ -103,11 +97,11 @@ for dgC = 1:dgNodes.Count
                 uqNode = propNodes.Item(pNC-1).GetElementsByTagName('uncertainty');
                 if uqNode.Count > 0
                     kind = char(uqNode.Item(0).GetAttributeNode('kind').Value);
-                    if nargin < 5 % uncValue is not known yet
+                    if nargin < 5 % uncVal is not known yet
                         uncVal = char(uqNode.Item(0).InnerText);
                     end
                 else
-                    kind = 0; % No Uncertainty Node Present
+                    kind = 0; % no uncertainty node present
                 end
             end
         end
