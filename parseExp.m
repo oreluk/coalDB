@@ -6,8 +6,9 @@ function expData = parseExp(hh, dd, expData, dataTable, ids)
 expDoc = ReactionLab.Util.gate2primeData('getDOM',{'primeID',expData.id.expID});
 
 %% Get Data Points from Selected Experiment
-dataTable = getDatapoints(hh, dd, dataTable, ids);
+[dataTable, uncertainty] = getDatapoints(hh, dd, dataTable, ids);
 expData.data = dataTable{1};
+expData.uncertainty = uncertainty{1};
 
 %% Download inital conditions
 commonProp = expDoc.GetElementsByTagName('commonProperties').Item(0).GetElementsByTagName('property');

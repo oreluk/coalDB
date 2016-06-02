@@ -94,7 +94,7 @@ else
         'String',       'Display Line', ...
         'CallBack',         @setPlot);
   
-    dataTable = getDatapoints(h, d, dataTable, ids);
+    [dataTable, uncertainty] = getDatapoints(h, d, dataTable, ids);
     
     [xUnits, yUnits] = setPlot;
     grid(ax, 'on')
