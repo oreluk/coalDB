@@ -14,7 +14,7 @@ expDoc = ReactionLab.Util.gate2primeData('getDOM',{'primeID',expData.id.expID});
 expData.data = dataTable{1};
 expData.uncertainty = uncertainty{1};  % uncertainty is reported as absolute error. 0 indicates no uncertainty is stored
 
-%% Download inital conditions
+%% Download initial conditions
 commonProp = expDoc.GetElementsByTagName('commonProperties').Item(0).GetElementsByTagName('property');
 for i = 1:commonProp.Count
     commonName = char(commonProp.Item(i-1).GetAttributeNode('name').Value);
