@@ -1,12 +1,13 @@
-function coalDB
-% CCMSC Coal Application
+function fig = coalDB
+% PrIMe Coal Application 2013 
 %
-% Jim Oreluk 2015.08.21
+% Jim Oreluk 2016.09.01
 %
 %  Purpose: Allow users to view table of coal results, plot weight-loss,
-%  filter coal data by coal Name
+%  filter coal data by coal name
 
-%% Load Data Structure
+%% Load Data
+
 f = load(fullfile(pwd, 'coalData.mat'));
 data.original.table = f.coalApp.tableData;
 data.original.click = f.coalApp.onClickData;
@@ -18,6 +19,7 @@ data.click = data.original.click;
 data.dp = data.original.dp;
 data.gas = data.original.gas;
 data.caTable = data.original.caTable;
+
 %% Create GUI
 
 fSize = [1080 550];
@@ -105,7 +107,7 @@ resultsFoundText = uicontrol('Parent',buttonPanel,...
     'Style',            'text', ...
     'HorizontalAlignment', 'left', ...
     'FontSize',         10, ...
-    'String',           sprintf('Data Groups Found: %s', num2str(size(tableDisplay.Data,1))));
+    'String',           sprintf('Data Groups Found: %s', num2str(size(get(tableDisplay, 'Data'),1))));
 
 filterByMenu = uicontrol('Parent',buttonPanel, ...
     'Units',            'normalized', ...
@@ -158,12 +160,12 @@ resetB =  uicontrol('Parent',buttonPanel, ...
                 searchGroup = 55;
             end
         else
-            searchTerm = searchBox.String;
-            searchGroup = filterByMenu.Value;
+            searchTerm = get(searchBox, 'String');
+            searchGroup = get(filterByMenu, 'Value');
         end
         
         % Reset if no Data Groups are shown.
-        if size(tableDisplay.Data,1) == 0
+        if size(get(tableDisplay, 'Data'),1) == 0
             resetButton;
         end
         
@@ -173,7 +175,7 @@ resetB =  uicontrol('Parent',buttonPanel, ...
         filtered.gas = {};
         filtered.caTable = {};
         
-        data.table = tableDisplay.Data;
+        data.table = get(tableDisplay, 'Data');
         
         % Menu Options
         if searchGroup == 88
@@ -182,7 +184,10 @@ resetB =  uicontrol('Parent',buttonPanel, ...
             filtered = filterSub(data, 'str2double(data.table(i,4)) > 0', [] );
         else
             %% Search Menu Cases
-            switch filterByMenu.String{filterByMenu.Value}
+            filterStrings = get(filterByMenu, 'String');
+            filterValues = get(filterByMenu, 'Value');
+            filterResult = filterStrings{filterValues};
+            switch filterResult
                 case 'Coal Name'
                     filtered = filterSub( data, ...
                         'strfind( lower(data.table{i,2}), strtrim(lower(searchTerm)) ) >= 1', ...
@@ -253,20 +258,20 @@ resetB =  uicontrol('Parent',buttonPanel, ...
             end
         end
         
-        tableDisplay.Data = filtered.table;
+        set(tableDisplay, 'Data', filtered.table);
         data.table = filtered.table;
         data.dp = filtered.dp;
         data.click = filtered.click;
         data.gas = filtered.gas;
-        resultsFoundText.String = sprintf('Data Groups Found: %s', num2str(size(tableDisplay.Data,1)));
+        set(resultsFoundText, 'String', sprintf('Data Groups Found: %s', num2str(size(get(tableDisplay, 'Data'),1))));
     end
 
     function resetButton(h,d)
-        tableDisplay.Data = data.original.table;
+        set(tableDisplay, 'Data', data.original.table);
         data.dp = data.original.dp;
         data.click = data.original.click;
         data.gas = data.original.gas;
-        resultsFoundText.String = sprintf('Data Groups Found: %s', num2str(size(tableDisplay.Data,1)));
+        set(resultsFoundText, 'String', sprintf('Data Groups Found: %s', num2str(size(get(tableDisplay, 'Data'),1))));
     end
 
     function editBox(h,d)
