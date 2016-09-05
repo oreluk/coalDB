@@ -10,6 +10,11 @@ This application acts as a front-end to the cloud-database hosted by [PrIMe](htt
 
 **[ReactionLab](https://github.com/PrIMeKinetics/ReactionLab)** toolbox is required. 
 
+**MATLAB 2015** or higher. For previous versions of MATLAB, use the folder named `*_2013a`
+## Status
+
+Code is developed on **MATLAB 2016a** on Windows, making use of .NET for XML file parsing. .NET is not supported natively in MATLAB on OSX so the folder `*_OSX` is compatable with all versions of **MATLAB**. 
+
 ## Future Changes
 
 * Add Introduction to submission -- Add more documentation to the tutorials. To make it as simple as possible to make contributions to the database  
