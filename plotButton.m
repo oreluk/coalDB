@@ -195,12 +195,20 @@ end
             end
             hold(ax, 'on')
         end
+        
         % ISSUE: if unable to match Menu (property) names, legend will
-        % mislabel names (currently displaying a warndlg
+        % mislabel names (currently displaying a warndlg)
         legend(ax, legendNames, 'Location', 'Best')
         xlabel(ax, strcat(xMenu.String{xMenu.Value}, ' [', xUnits, ']'))
         ylabel(ax, strcat(yMenu.String{yMenu.Value}, ' [', yUnits, ']'))
-        grid(ax, 'on')
+        
+        % write stats in title...
+        titleString =  ['n_{samples} = ', num2str(length(xValues)), ', ', ...
+            '\mu_x = ', num2str(round(mean(xValues),2)), ', ', ...
+            '\sigma_x = ', num2str(round(std(xValues),2)), ', ', ...
+            '\mu_y = ', num2str(round(mean(yValues),2)), ', ', ...
+            '\sigma_y = ', num2str(round(std(yValues),2))];
+        title(ax, titleString);
     end
 
     function exportExcel(hh, dd)
