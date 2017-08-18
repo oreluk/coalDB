@@ -145,7 +145,7 @@ resetB =  uicontrol('Parent',buttonPanel, ...
     end
 
     function onClickCall(h, d)
-        onClick(h,d,data)
+%         onClick(h,d,data)
     end
 
     function filterButton(h,d, varargin)

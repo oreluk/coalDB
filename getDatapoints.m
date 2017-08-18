@@ -17,17 +17,18 @@ waitbar(0,h,sprintf('Downloading Data From PrIMe Warehouse'))
 for i = 1:size(dataTable,2)
     % All HDF5
     if all(strcmpi(dataTable{i}(4,:), 'dataInHDF'))
-        link = ['http://warehouse.primekinetics.org/depository/experiments/data/' ...
+        link = ['http://warehouse.cki-know.org/depository/experiments/data/' ...
             ids{i}{1}, '/' ids{i}{2}, '.hdf'];
         localH5 = websave( [ids{i}{2}, '.hdf'], link);
         try
             data = hdf5read(localH5, ids{i}{2});
             dataTable{i}(4,:) = [];
             dataTable{i} = [dataTable{i}; num2cell(data')];
-        catch  % dataPoint is [value,uncertainty]
+        catch  % dataPoint is [value, uncertainty]
             d = {};
             u = {};
-            expDoc = ReactionLab.Util.gate2primeData('getDOM',{'primeID',ids{i}{1}});
+            % expDoc = ReactionLab.Util.gate2primeData('getDOM',{'primeID',ids{i}{1}});
+            expDoc = getXML(strcat('experiments/catalog/', ids{i}{1}));
             for j = 1:size(dataTable{i},2)
                 h5s = hdf5read(localH5, strcat(ids{i}{2}, '/', dataTable{i}{3,j}));
                 for j1 = 1:length(h5s)
@@ -52,21 +53,23 @@ for i = 1:size(dataTable,2)
         delete(localH5)
     elseif all(strcmpi(dataTable{i}(4,:), 'dataInXML'))
         % Download XML
-        expDoc = ReactionLab.Util.gate2primeData('getDOM',{'primeID',ids{i}{1}});
-        dgGroups = expDoc.GetElementsByTagName('dataGroup');
-        for dgC = 1:dgGroups.Count
-            if strcmpi(char(dgGroups.Item(dgC-1).GetAttribute('id')), ids{i}{2})
+        %         expDoc = ReactionLab.Util.gate2primeData('getDOM',{'primeID',ids{i}{1}});
+        expDoc = getXML(strcat('experiments/catalog/', ids{i}{1}));
+        dgGroups = expDoc.getElementsByTagName('dataGroup');
+        %         for dgC = 1:dgGroups.Count
+        for dgC = 1:dgGroups.getLength
+            if strcmpi(char(dgGroups.item(dgC-1).getAttribute('id')), ids{i}{2})
                 for numXs = 1:size(dataTable{i},2)
-                    tagElements = dgGroups.Item(dgC-1).GetElementsByTagName(dataTable{i}{3,numXs});
-                    for j = 1:tagElements.Count
-                        if strfind(char(tagElements.Item(j-1).InnerText), ',') ~= 0
-                            temp = strsplit(char(tagElements.Item(j-1).InnerText), ',');
+                    tagElements = dgGroups.item(dgC-1).getElementsByTagName(dataTable{i}{3,numXs});
+                    for j = 1:tagElements.getLength
+                        if strfind(char(tagElements.item(j-1).getTextContent()), ',') ~= 0
+                            temp = strsplit(char(tagElements.item(j-1).getTextContent()), ',');
                             dataTable{i}{j+3,numXs} = str2double(temp{1});
                             [absUncVal, uncKind] = getUncertainty(expDoc, ids{i}{2}, dataTable{i}{3,numXs}, str2double(temp{1}), str2double(temp{2}));
                             uncertainty{i}{j+3,numXs} = absUncVal;
                         else
-                            dataTable{i}{j+3,numXs} = str2double(char(tagElements.Item(j-1).InnerText));
-                            [absUncVal, uncKind] = getUncertainty(expDoc, ids{i}{2}, dataTable{i}{3,numXs}, str2double(char(tagElements.Item(j-1).InnerText)));
+                            dataTable{i}{j+3,numXs} = str2double(char(tagElements.item(j-1).getTextContent()));
+                            [absUncVal, uncKind] = getUncertainty(expDoc, ids{i}{2}, dataTable{i}{3,numXs}, str2double(char(tagElements.item(j-1).getTextContent())));
                             uncertainty{i}{j+3,numXs} = absUncVal;
                         end
                     end
@@ -88,17 +91,17 @@ function [absUncertainty, kind] = getUncertainty(expDoc, dgID, propID, dataPoint
 %  from (dataPoint) and uncertainty from (uncVal), this function will
 %  return the absolute uncertainty bound (absUncertainty).
 
-dgNodes = expDoc.GetElementsByTagName('dataGroup');
-for dgC = 1:dgNodes.Count
-    if strcmpi(char(dgNodes.Item(dgC-1).GetAttributeNode('id').Value), dgID)
-        propNodes = dgNodes.Item(dgC-1).GetElementsByTagName('property');
-        for pNC = 1:propNodes.Count
-            if strcmpi(char(propNodes.Item(pNC-1).GetAttributeNode('id').Value), propID)
-                uqNode = propNodes.Item(pNC-1).GetElementsByTagName('uncertainty');
-                if uqNode.Count > 0
-                    kind = char(uqNode.Item(0).GetAttributeNode('kind').Value);
+dgNodes = expDoc.getElementsByTagName('dataGroup');
+for dgC = 1:dgNodes.getLength
+    if strcmpi(char(dgNodes.item(dgC-1).getAttributeNode('id').getNodeValue()), dgID)
+        propNodes = dgNodes.item(dgC-1).getElementsByTagName('property');
+        for pNC = 1:propNodes.getLength
+            if strcmpi(char(propNodes.item(pNC-1).getAttributeNode('id').getNodeValue()), propID)
+                uqNode = propNodes.item(pNC-1).getElementsByTagName('uncertainty');
+                if uqNode.getLength > 0
+                    kind = char(uqNode.item(0).getAttributeNode('kind').getNodeValue());
                     if nargin < 5 % uncVal is not known yet
-                        uncVal = char(uqNode.Item(0).InnerText);
+                        uncVal = char(uqNode.item(0).getTextContent());
                     end
                 else
                     kind = 0; % no uncertainty node present
